@@ -53,7 +53,13 @@ namespace Stalker
 
     public class StartupForm : Form
     {
-        private string credentialsFile = "credentials.json";
+        private string credentialsFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Kisa",
+            "LibreLinkUp",
+            "credentials.json"
+        );
+
         private string authToken;
         private string patientId;
         private string sha256Hash;
@@ -184,7 +190,12 @@ namespace Stalker
         private Button loginButton;
         private TextBox emailTextBox;
         private TextBox passwordTextBox;
-        private string credentialsFile = "credentials.json";
+        private string credentialsFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Kisa",
+            "LibreLinkUp",
+            "credentials.json"
+        );
         private string authToken;
         private string patientId;
         private string sha256Hash;
@@ -522,6 +533,13 @@ namespace Stalker
                     email = email,
                     password = password
                 };
+                string directoryPath = Path.GetDirectoryName(credentialsFile);
+
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
                 File.WriteAllText(credentialsFile, JsonConvert.SerializeObject(credentials));
 
                 Application.Restart();
