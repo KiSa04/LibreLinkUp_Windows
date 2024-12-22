@@ -48,7 +48,7 @@ jobs:
 
     # Publish the application to a folder
     - name: Publish the application
-      run: msbuild D:\a\LibreLinkUp_Windows\LibreLinkUp_Windows\Stalker.sln /p:Configuration=Release /p:Platform="x64" /p:PublishDir=./published
+      run: dotnet msbuild D:\a\LibreLinkUp_Windows\LibreLinkUp_Windows\Stalker.sln /p:Configuration=Release /p:Platform="x64" /p:PublishDir=./published
 
     # List the files in the published folder (for debugging)
     - name: List files in published folder
