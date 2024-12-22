@@ -58,7 +58,7 @@ jobs:
     # Create a ZIP file of the build
     - name: Create ZIP of the build
       run: |
-        zip -r Stalker.zip ./bin/Release/*
+        Compress-Archive -Path ./bin/Release/* -DestinationPath LibreLinkUp_Portable.zip
     
     # Upload the ZIP file to GitHub Release
     - name: Upload ZIP to GitHub Release
@@ -68,4 +68,5 @@ jobs:
         files: Stalker.zip  # Path to the ZIP file
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
 
