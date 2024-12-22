@@ -65,7 +65,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ secrets.VERSION }}
-        files: Stalker.zip  # Path to the ZIP file
+        files: LibreLinkUp_Portable.zip  # Path to the ZIP file
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
