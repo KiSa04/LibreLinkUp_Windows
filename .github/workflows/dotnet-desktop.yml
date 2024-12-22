@@ -119,5 +119,5 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: ${{ env.Wap_Project_Directory }}\AppPackages\*.msix
-        tag: LibreLinkUp ${{ secrets.VERSION }}
+        tag: LibreLinkUp_${{ secrets.VERSION }}
 
