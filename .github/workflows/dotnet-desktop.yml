@@ -29,12 +29,24 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    # Clean the solution to ensure there are no stale build artifacts
+    - name: Clean the application
+      run: dotnet clean $env:Solution_Name
+
+    # Restore dependencies
     - name: Restore the application
       run: dotnet restore $env:Solution_Name
 
+    # Force MSBuild to use x64
+    - name: Set MSBuild path to x64
+      run: |
+        set MSBUILD_PATH="C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe"
+
+    # Build the application
     - name: Build the application
       run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }}
 
+    # Publish the application to a folder
     - name: Publish the application
       run: dotnet publish $env:Project_Path -c ${{ matrix.configuration }} -r win-x64 -o ./published
 
