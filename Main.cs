@@ -11,7 +11,7 @@ using System.Windows.Forms.DataVisualization.Charting;
 using System.ComponentModel.Design;
 using System.Reflection;
 using System.Drawing.Drawing2D;
-using RoundedRectangles;
+using Microsoft.Win32;
 
 namespace Stalker
 {
@@ -22,7 +22,21 @@ namespace Stalker
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            AddAppToStartup();
             Application.Run(new StartupForm());
+        }
+        private static void AddAppToStartup()
+        {
+            // Get the current application path
+            string appPath = Application.ExecutablePath;
+
+            // The registry key where startup applications are registered
+            string registryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(registryKey, true))
+            {
+                // Add the application to the registry
+                key.SetValue("Stalker", appPath);
+            }
         }
     }
     public class FormWrapper : ApplicationContext
@@ -63,6 +77,8 @@ namespace Stalker
                 {
                     // Open the main form directly if login is successful
                     floating.GlucoseForm glucoseForm = new floating.GlucoseForm(authToken, sha256Hash, patientId);
+                    FormClosingEventHandler glucoseFormCloseEvent = (s, args) => this.Close();
+                    glucoseForm.FormClosing += glucoseFormCloseEvent;
                     glucoseForm.ShowDialog();
 
                 }
@@ -187,6 +203,7 @@ namespace Stalker
             // Initialize components
             InitializeComponent();
             this.FormClosing += LoginForm_FormClosing;
+            this.Icon = Properties.Resources.icon;
         }
         private Image LoadEmbeddedImage(string resourceName)
         {
@@ -587,7 +604,6 @@ namespace Stalker
             {
                 if (!_isFormClosing && !_isDisposed)
                 {
-                    MessageBox.Show($"An error occurred: {ex.Message}");
                 }
                 return false;
             }

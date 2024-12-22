@@ -23,6 +23,8 @@ namespace Stalker
             private bool isDragging = false;
             private Point mouseOffset;
             private Chart glucoseChart;
+            private NotifyIcon trayIcon;
+            private ContextMenu trayMenu;
 
             public GlucoseForm(string authToken, string sha256Hash, string patientId)
             {
@@ -30,7 +32,20 @@ namespace Stalker
                 this.sha256Hash = sha256Hash;
                 this.patientId = patientId;
 
-                // Initialize components for floating glucose form
+                trayMenu = new ContextMenu();
+                trayMenu.MenuItems.Add("Exit", ExitApp);
+
+                trayIcon = new NotifyIcon()
+                {
+                    Icon = Properties.Resources.icon, 
+                    ContextMenu = trayMenu,
+                    Visible = true
+                };
+
+                trayIcon.DoubleClick += TrayIcon_DoubleClick;
+
+                this.ShowInTaskbar = false;
+
                 glucoseLabel = new Label()
                 {
                     Text = "Glucose: Loading...",
@@ -45,7 +60,7 @@ namespace Stalker
                 glucoseChart = new Chart()
                 {
                     Location = new Point(0, 50),
-                    Size = new Size(350, 200) // Set the chart size
+                    Size = new Size(350, 200) 
                 };
                 ChartArea chartArea = new ChartArea();
                 glucoseChart.ChartAreas.Add(chartArea);
@@ -62,15 +77,15 @@ namespace Stalker
                 Controls.Add(glucoseChart);
                 Controls.Add(glucoseLabel);
 
-                // Make the form transparent with a floating effect
                 this.FormBorderStyle = FormBorderStyle.None;
                 this.TopMost = true;
                 this.StartPosition = FormStartPosition.Manual;
-                this.Location = new System.Drawing.Point(10, 10); // Adjust the location on the screen
+                this.Location = new System.Drawing.Point(10, 10); 
                 this.BackColor = System.Drawing.Color.Black;
                 this.Opacity = 0.8;
                 this.Width = 150;
                 this.Height = 50;
+                this.Icon = Properties.Resources.icon;
 
                 this.MouseDown += GlucoseForm_MouseDown;
                 this.MouseMove += GlucoseForm_MouseMove;
@@ -82,13 +97,28 @@ namespace Stalker
                 glucoseLabel.Top = (this.ClientSize.Height - glucoseLabel.Height) / 2;
 
                 _ = GetLatestGlucoseValue();
-                // Start glucose monitoring
                 glucoseTimer = new System.Timers.Timer();
-                glucoseTimer.Interval = 60000; // 1 minute
+                glucoseTimer.Interval = 60000;
                 glucoseTimer.Elapsed += GlucoseTimer_Elapsed;
                 glucoseTimer.Start();
             }
+            private void TrayIcon_DoubleClick(object sender, EventArgs e)
+            {
+                if (this.WindowState == FormWindowState.Minimized)
+                {
+                    this.WindowState = FormWindowState.Normal;
+                }
+                else
+                {
+                    this.WindowState = FormWindowState.Minimized;
+                }
+            }
 
+            private void ExitApp(object sender, EventArgs e)
+            {
+                trayIcon.Visible = false;
+                Application.Exit();
+            }
             private void GlucoseForm_MouseLeave(object sender, EventArgs e)
             {
                 glucoseChart.Visible = false;
