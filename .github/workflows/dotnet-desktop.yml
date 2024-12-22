@@ -48,7 +48,7 @@ jobs:
 
     # Publish the application to a folder
     - name: Publish the application
-      run: dotnet publish $env:Project_Path -c ${{ matrix.configuration }} -r win-x64 -o ./published
+      run: msbuild D:\a\LibreLinkUp_Windows\LibreLinkUp_Windows\Stalker.sln /p:Configuration=Release /p:Platform="x64" /p:PublishDir=./published
 
     # List the files in the published folder (for debugging)
     - name: List files in published folder
