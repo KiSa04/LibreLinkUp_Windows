@@ -24,58 +24,33 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install .NET Core
+    - name: Install .NET SDK
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    
-    - name: Install .NET Workloads
-      run: dotnet workload install winforms
 
-    # Install MSBuild on the runner
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    # Restore dependencies
+    # Restore dependencies without .NET workload
     - name: Restore the application
-      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
-      env:
-        Configuration: ${{ matrix.configuration }}
+      run: dotnet restore $env:Solution_Name --configuration ${{ matrix.configuration }}
 
+    # Build the application
     - name: Build the application
-      run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:OutputPath=./bin/$env:Configuration
-      env:
-        Configuration: ${{ matrix.configuration }}
+      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }} --output ./bin/$env:Configuration
 
     # Publish the application to a folder
     - name: Publish the application
-      run: |
-        dotnet publish $env:Project_Path -c ${{ matrix.configuration }}  -r win-x64 -o ./published
-      env:
-        Configuration: ${{ matrix.configuration }}
+      run: dotnet publish $env:Project_Path -c ${{ matrix.configuration }} -r win-x64 -o ./published
 
-    # Zip the published files (Optional step)
-    - name: Zip the published files
+    # List the files in the published folder (for debugging)
+    - name: List files in published folder
       run: |
-        Compress-Archive -Path ./published/* -DestinationPath ./AppPackages/Stalker.exe
+        dir ./published
 
-    # List the files in AppPackages to verify the exe file exists
-    - name: List files in AppPackages
-      run: |
-        ls ./AppPackages
-
-    # Create a tag for the release
-    - name: Create tag
-      run: |
-        echo "Creating tag: ${{ secrets.VERSION }}"
-        git tag ${{ secrets.VERSION }}
-        git push origin ${{ secrets.VERSION }}
-
-    # Upload the app package to GitHub Release
-    - name: Upload app package to GitHub Release
+    # Upload the .exe file to GitHub Release
+    - name: Upload .exe to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ secrets.VERSION }}
-        files: ./AppPackages/*.zip  # Path to the zip package
+        files: ./published/Stalker.exe  # Path to the .exe file
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
