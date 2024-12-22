@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        configuration: [Release]
 
     runs-on: windows-latest
 
@@ -53,13 +53,13 @@ jobs:
     # List the files in the published folder (for debugging)
     - name: List files in published folder
       run: |
-        dir ./published
+        dir ./bin/Release/
 
     # Upload the .exe file to GitHub Release
     - name: Upload .exe to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ secrets.VERSION }}
-        files: ./published/Stalker.exe  # Path to the .exe file
+        files: ./bin/Release/Stalker.exe  # Path to the .exe file
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
