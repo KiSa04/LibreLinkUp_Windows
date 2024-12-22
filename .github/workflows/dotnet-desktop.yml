@@ -30,7 +30,7 @@ jobs:
         dotnet-version: 8.0.x
     
     - name: Install .NET Workloads
-      run: dotnet workload install
+      run: dotnet workload install winforms
 
     # Install MSBuild on the runner
     - name: Setup MSBuild
