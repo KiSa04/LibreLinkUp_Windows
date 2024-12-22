@@ -95,7 +95,12 @@ jobs:
         Appx_Bundle_Platforms: x86|x64
         Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
-
+        
+    - name: Create tag
+      run: |
+        git tag ${{ secrets.version }}  # You can replace this with a dynamic tag if needed
+        git push origin ${{ secrets.version }}
+        
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
