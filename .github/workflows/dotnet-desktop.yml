@@ -96,17 +96,22 @@ jobs:
         Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
         
+    # Step to create a tag (e.g., v1.0.0 or dynamic version)
     - name: Create tag
       run: |
-        git tag ${{ secrets.VERSION }}  # You can replace this with a dynamic tag if needed
-        git push origin ${{ secrets.VERSION }}
-        
+        # Ensure the VERSION secret is passed and a tag is created
+        echo "Creating tag: ${{ secrets.VERSION }}"
+        git tag ${{ secrets.VERSION }}  # Tagging with the secret VERSION value
+        git push origin ${{ secrets.VERSION }}  # Push the tag to the remote repository
+    
+    # Step to create GitHub Release
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        files: ${{ env.Wap_Project_Directory }}\AppPackages\*.msix
+        files: ${{ env.Wap_Project_Directory }}\AppPackages\*.msix  # Path to the MSIX package
       env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}  # Use the GITHUB_TOKEN for authentication
+
 
     # Step to upload the MSIX package to the release
     - name: Upload MSIX package to GitHub Release
