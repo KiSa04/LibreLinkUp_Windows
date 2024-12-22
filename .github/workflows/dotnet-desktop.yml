@@ -33,6 +33,9 @@ jobs:
     - name: Clean the application
       run: dotnet clean $env:Solution_Name
 
+    - name: Install Resources.Extensions
+      run: dotnet add package System.Resources.Extensions
+
     # Restore dependencies
     - name: Restore the application
       run: dotnet restore $env:Solution_Name
