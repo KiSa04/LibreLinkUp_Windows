@@ -29,11 +29,20 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    # Install the MSIX Packaging Tool
     - name: Install MSIX Packaging Tool
       run: |
+        # Download the installer
         Invoke-WebRequest -Uri https://aka.ms/msix-packaging-tool-installer -OutFile msixpackagingtool.exe
-        Start-Process -FilePath msixpackagingtool.exe -ArgumentList "/quiet", "/install" -Wait
+        # Check if the file was downloaded successfully
+        if (Test-Path -Path msixpackagingtool.exe) {
+          Write-Host "MSIX Packaging Tool installer downloaded successfully."
+          # Install the tool
+          Start-Process -FilePath msixpackagingtool.exe -ArgumentList "/quiet", "/install" -Wait
+        } else {
+          Write-Error "Failed to download the MSIX Packaging Tool installer."
+          exit 1
+        }
+        # Clean up installer file
         Remove-Item -Force msixpackagingtool.exe
 
     # Restore dependencies
