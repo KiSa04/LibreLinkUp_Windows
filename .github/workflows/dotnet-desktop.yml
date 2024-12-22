@@ -29,9 +29,6 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Install .NET Workloads
-      run: dotnet workload install
-
     # Install MSBuild on the runner
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
