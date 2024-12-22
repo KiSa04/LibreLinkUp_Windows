@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using Leaf.xNet;
+using System.Drawing;
+using System.Windows.Forms.DataVisualization.Charting;
+using System.ComponentModel.Design;
+using System.Reflection;
+using System.Drawing.Drawing2D;
+using RoundedRectangles;
 
 namespace Stalker
 {
@@ -78,6 +84,7 @@ namespace Stalker
             loginForm.FormClosed += (s, args) => this.Close();
             loginForm.ShowDialog();
         }
+
 
         private async Task<bool> LoginAsync(string email, string password)
         {
@@ -169,6 +176,11 @@ namespace Stalker
         private bool _isDisposed = false;
         private bool _isLoginInProgress = false;
         private bool _isFormClosing = false;
+        private int borderRadius = 17;
+        private int borderSize = 0;
+        private Color borderColor = Color.FromArgb(128, 128, 255);
+        private const int ButtonSize = 12; 
+        private const int ButtonPadding = 10; 
 
         public LoginForm()
         {
@@ -176,24 +188,275 @@ namespace Stalker
             InitializeComponent();
             this.FormClosing += LoginForm_FormClosing;
         }
+        private Image LoadEmbeddedImage(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                    throw new Exception($"Resource '{resourceName}' not found.");
+                return Image.FromStream(stream);
+            }
+        }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.Style |= 0x20000; // <--- Minimize borderless form from taskbar
+                return cp;
+            }
+        }
+
+        private GraphicsPath GetRoundedPath(Rectangle rect, float radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+            float curveSize = radius * 2F;
+
+            path.StartFigure();
+            path.AddArc(rect.X, rect.Y, curveSize, curveSize, 180, 90);
+            path.AddArc(rect.Right - curveSize, rect.Y, curveSize, curveSize, 270, 90);
+            path.AddArc(rect.Right - curveSize, rect.Bottom - curveSize, curveSize, curveSize, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - curveSize, curveSize, curveSize, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+        private void FormRegionAndBorder(Form form, float radius, Graphics graph, Color borderColor, float borderSize)
+        {
+            if (this.WindowState != FormWindowState.Minimized)
+            {
+                using (GraphicsPath roundPath = GetRoundedPath(form.ClientRectangle, radius))
+                using (Pen penBorder = new Pen(borderColor, borderSize))
+                using (Matrix transform = new Matrix())
+                {
+                    graph.SmoothingMode = SmoothingMode.AntiAlias;
+                    form.Region = new Region(roundPath);
+                    if (borderSize >= 1)
+                    {
+                        Rectangle rect = form.ClientRectangle;
+                        float scaleX = 1.0F - ((borderSize + 1) / rect.Width);
+                        float scaleY = 1.0F - ((borderSize + 1) / rect.Height);
+
+                        transform.Scale(scaleX, scaleY);
+                        transform.Translate(borderSize / 1.6F, borderSize / 1.6F);
+
+                        graph.Transform = transform;
+                        graph.DrawPath(penBorder, roundPath);
+                    }
+                }
+            }
+        }
+        private void ControlRegionAndBorder(Control control, float radius, Graphics graph, Color borderColor)
+        {
+            using (GraphicsPath roundPath = GetRoundedPath(control.ClientRectangle, radius))
+            using (Pen penBorder = new Pen(borderColor, 1))
+            {
+                graph.SmoothingMode = SmoothingMode.AntiAlias;
+                control.Region = new Region(roundPath);
+                graph.DrawPath(penBorder, roundPath);
+            }
+        }
+        private void DrawPath(Rectangle rect, Graphics graph, Color color)
+        {
+            using (GraphicsPath roundPath = GetRoundedPath(rect, borderRadius))
+            using (Pen penBorder = new Pen(color, 3))
+            {
+                graph.DrawPath(penBorder, roundPath);
+            }
+        }
+        private struct FormBoundsColors
+        {
+            public Color TopLeftColor;
+            public Color TopRightColor;
+            public Color BottomLeftColor;
+            public Color BottomRightColor;
+        }
+        private FormBoundsColors GetFormBoundsColors()
+        {
+            var fbColor = new FormBoundsColors();
+            using (var bmp = new Bitmap(1, 1))
+            using (Graphics graph = Graphics.FromImage(bmp))
+            {
+                Rectangle rectBmp = new Rectangle(0, 0, 1, 1);
+
+                //Top Left
+                rectBmp.X = this.Bounds.X - 1;
+                rectBmp.Y = this.Bounds.Y;
+                graph.CopyFromScreen(rectBmp.Location, Point.Empty, rectBmp.Size);
+                fbColor.TopLeftColor = bmp.GetPixel(0, 0);
+
+                //Top Right
+                rectBmp.X = this.Bounds.Right;
+                rectBmp.Y = this.Bounds.Y;
+                graph.CopyFromScreen(rectBmp.Location, Point.Empty, rectBmp.Size);
+                fbColor.TopRightColor = bmp.GetPixel(0, 0);
+
+                //Bottom Left
+                rectBmp.X = this.Bounds.X;
+                rectBmp.Y = this.Bounds.Bottom;
+                graph.CopyFromScreen(rectBmp.Location, Point.Empty, rectBmp.Size);
+                fbColor.BottomLeftColor = bmp.GetPixel(0, 0);
+
+                //Bottom Right
+                rectBmp.X = this.Bounds.Right;
+                rectBmp.Y = this.Bounds.Bottom;
+                graph.CopyFromScreen(rectBmp.Location, Point.Empty, rectBmp.Size);
+                fbColor.BottomRightColor = bmp.GetPixel(0, 0);
+            }
+            return fbColor;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            Rectangle rectForm = this.ClientRectangle;
+            int mWidht = rectForm.Width / 2;
+            int mHeight = rectForm.Height / 2;
+            var fbColors = GetFormBoundsColors();
+            //Top Left
+            DrawPath(rectForm, e.Graphics, fbColors.TopLeftColor);
+            //Top Right
+            Rectangle rectTopRight = new Rectangle(mWidht, rectForm.Y, mWidht, mHeight);
+            int buttonY = 10; // Vertical position for the buttons
+            int buttonX = this.Width - ButtonSize - ButtonPadding; // Horizontal position (right-aligned)
+
+
+            FormRegionAndBorder(this, borderRadius, e.Graphics, borderColor, borderSize);
+            DrawButton(e.Graphics, buttonX, buttonY, Color.Red);   
+            DrawButton(e.Graphics, buttonX - ButtonSize - 5, buttonY, Color.Green); 
+        }
+
+        private void DrawButton(Graphics graphics, int x, int y, Color color)
+        {
+            using (Brush brush = new SolidBrush(color))
+            {
+                graphics.FillEllipse(brush, x, y, ButtonSize, ButtonSize); // Draw a circle (button)
+            }
+        }
+
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            base.OnMouseClick(e);
+
+            // Check if the click is inside any of the buttons
+            int buttonY = 10; // Vertical position of the buttons
+            int buttonX = this.Width - ButtonSize - ButtonPadding; // Horizontal position (right-aligned)
+
+            // Close button
+            if (IsPointInsideButton(e.X, e.Y, buttonX, buttonY))
+            {
+                this.Close();
+            }
+            // Minimize button
+            else if (IsPointInsideButton(e.X, e.Y, buttonX - ButtonSize - 5, buttonY))
+            {
+                this.WindowState = FormWindowState.Minimized;
+            }
+            // Maximize button
+            else if (IsPointInsideButton(e.X, e.Y, buttonX - 2 * (ButtonSize + 5), buttonY))
+            {
+                this.WindowState = (this.WindowState == FormWindowState.Normal) ? FormWindowState.Maximized : FormWindowState.Normal;
+            }
+        }
+
+        private bool IsPointInsideButton(int mouseX, int mouseY, int buttonX, int buttonY)
+        {
+            return mouseX >= buttonX && mouseX <= buttonX + ButtonSize &&
+                   mouseY >= buttonY && mouseY <= buttonY + ButtonSize;
+        }
+
 
         private void InitializeComponent()
         {
-            loginButton = new Button() { Text = "Login", Width = 100, Top = 80, Left = 50 };
-            emailTextBox = new TextBox() { Top = 20, Left = 50, Width = 200 };
-            passwordTextBox = new TextBox() { Top = 50, Left = 50, Width = 200, PasswordChar = '*' };
+            // PictureBox for the glucometer image
 
+            // PictureBox for the LibreLinkUp icon
+            PictureBox libreLinkUpPictureBox = new PictureBox()
+            {
+                Top = 50,
+                Left = 50,
+                Width = 250,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                Image = LoadEmbeddedImage("Stalker.LLU-Logo.png")
+            };
+
+            // Labels
+            Label emailLabel = new Label()
+            {
+                Text = "Email",
+                Top = 110,
+                Left = 50,
+                Width = 250,
+                Font = new Font("Arial", 10, FontStyle.Regular),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+            Label passwordLabel = new Label()
+            {
+                Text = "Password",
+                Top = 170,
+                Left = 50,
+                Width = 250,
+                Font = new Font("Arial", 10, FontStyle.Regular),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            // Input fields
+            emailTextBox = new TextBox()
+            {
+                Top = 135,
+                Left = 50,
+                Width = 250,
+                Font = new Font("Arial", 10),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            passwordTextBox = new TextBox()
+            {
+                Top = 195,
+                Left = 50,
+                Width = 250,
+                Font = new Font("Arial", 10),
+                PasswordChar = '•',
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Login button
+            loginButton = new Button()
+            {
+                Text = "Login",
+                Width = 250,
+                Height = 35,
+                Top = 250,
+                Left = 50,
+                BackColor = Color.FromArgb(45, 137, 239),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Arial", 10, FontStyle.Bold)
+            };
+            loginButton.FlatAppearance.BorderSize = 0;
+            loginButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(35, 120, 200);
             loginButton.Click += LoginButton_Click;
 
+            // Form settings
+            this.Text = "Login";
+            this.ClientSize = new Size(350, 320);
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackColor = Color.White;
+            
+
+            // Add controls to form
+            //Controls.Add(glucometerPictureBox);
+            Controls.Add(libreLinkUpPictureBox);
+            //Controls.Add(headerLabel);
+            Controls.Add(emailLabel);
             Controls.Add(emailTextBox);
+            Controls.Add(passwordLabel);
             Controls.Add(passwordTextBox);
             Controls.Add(loginButton);
-
-            // Basic form settings to make it look better
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = "Login";
         }
+
+
 
         protected override void Dispose(bool disposing)
         {
@@ -245,7 +508,7 @@ namespace Stalker
                 File.WriteAllText(credentialsFile, JsonConvert.SerializeObject(credentials));
 
                 Application.Restart();
-                
+
             }
             else
             {
@@ -258,8 +521,9 @@ namespace Stalker
             try
             {
                 Leaf.xNet.HttpRequest postReq = new Leaf.xNet.HttpRequest();
-                var loginUrl = "https://api-eu.libreview.io/llu/auth/login";
-                var conUrl = "https://api-eu.libreview.io/llu/connections";
+                string region = "";
+                var loginUrl = $"https://api.libreview.io/llu/auth/login";
+                var conUrl = $"https://api.libreview.io/llu/connections";
 
                 void addHeaders(Leaf.xNet.HttpRequest httpRequest, string auth, string hash)
                 {
@@ -285,25 +549,36 @@ namespace Stalker
                 addHeaders(postReq, null, null);
                 var requestBody = new { email = email, password = password };
                 var json = JsonConvert.SerializeObject(requestBody);
-                var request = postReq.Post(loginUrl, json, "application/json");
+                var loginResp = postReq.Post(loginUrl, json, "application/json");
 
-                if (request.StatusCode.ToString() == "OK")
+                if (loginResp.StatusCode.ToString() == "OK")
                 {
-                    dynamic jsonResp = JsonConvert.DeserializeObject(request.ToString());
-                    authToken = jsonResp.data.authTicket.token;
-                    string input = jsonResp.data.user.id;
-                    sha256Hash = ComputeSha256Hash(input);
+                    dynamic JsonLogin = JsonConvert.DeserializeObject(loginResp.ToString());
+                    region = $"-{JsonLogin.data.region}";
+                    loginUrl = $"https://api{region}.libreview.io/llu/auth/login";
+                    conUrl = $"https://api{region}.libreview.io/llu/connections";
                     postReq.ClearAllHeaders();
-                    addHeaders(postReq, authToken, sha256Hash);
-                    var connectionsResp = postReq.Get(conUrl);
+                    addHeaders(postReq, null, null);
+                    var request = postReq.Post(loginUrl, json, "application/json");
 
-                    if (connectionsResp.StatusCode.ToString() == "OK")
+                    if (request.StatusCode.ToString() == "OK")
                     {
-                        dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
-                        patientId = jsonCon.data[0].patientId;
+                        dynamic jsonResp = JsonConvert.DeserializeObject(request.ToString());
+                        authToken = jsonResp.data.authTicket.token;
+                        string input = jsonResp.data.user.id;
+                        sha256Hash = ComputeSha256Hash(input);
                         postReq.ClearAllHeaders();
                         addHeaders(postReq, authToken, sha256Hash);
-                        return true;
+                        var connectionsResp = postReq.Get(conUrl);
+
+                        if (connectionsResp.StatusCode.ToString() == "OK")
+                        {
+                            dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
+                            patientId = jsonCon.data[0].patientId;
+                            postReq.ClearAllHeaders();
+                            addHeaders(postReq, authToken, sha256Hash);
+                            return true;
+                        }
                     }
                 }
                 return false;
