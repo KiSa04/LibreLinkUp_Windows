@@ -7,7 +7,7 @@
     <ProjectGuid>{2278465C-52FF-426B-9E57-A7A2A4AE8BB3}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Stalker</RootNamespace>
-    <AssemblyName>Stalker</AssemblyName>
+    <AssemblyName>LibreLinkUp</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
