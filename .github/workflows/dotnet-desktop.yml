@@ -15,8 +15,8 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: Stalker.sln  # Your solution name
-      Project_Path: Stalker.csproj  # Your WinForms project file path
+      Solution_Name: Stalker.sln  
+      Project_Path: Stalker.csproj  
 
     steps:
     - name: Checkout code
@@ -29,6 +29,9 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: Install .NET Workloads
+      run: dotnet workload install
+
     # Install MSBuild on the runner
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
@@ -39,7 +42,6 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 
-    # Build the application (not using WAP, just the WinForms app)
     - name: Build the application
       run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:OutputPath=./bin/$env:Configuration
       env:
@@ -48,7 +50,7 @@ jobs:
     # Publish the application to a folder
     - name: Publish the application
       run: |
-        dotnet publish $env:Project_Path -c ${{ matrix.configuration }} -o ./published
+        dotnet publish $env:Project_Path -c ${{ matrix.configuration }}  -r win-x64 -o ./published
       env:
         Configuration: ${{ matrix.configuration }}
 
