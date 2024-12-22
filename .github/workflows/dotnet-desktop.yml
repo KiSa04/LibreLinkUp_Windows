@@ -29,6 +29,10 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    # Install MSBuild on the runner
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
     # Restore dependencies
     - name: Restore the application
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
