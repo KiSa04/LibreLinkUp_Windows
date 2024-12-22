@@ -12,3 +12,8 @@ Green means it's between your low and high ranges! just like in libre view app
 
 ![imagem](https://github.com/user-attachments/assets/8db43505-15c7-48e1-95ed-8526cb299454)
 
+Auto-detects your region based on LibreLink API and saves it locally so you don't have to login again
+
+![imagem](https://github.com/user-attachments/assets/bbe77634-3131-451a-82fa-e5c28730e8ad)
+
+
