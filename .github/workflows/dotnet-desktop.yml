@@ -101,8 +101,8 @@ jobs:
       run: |
         # Ensure the VERSION secret is passed and a tag is created
         echo "Creating tag: ${{ secrets.VERSION }}"
-        git tag ${{ secrets.VERSION }}  # Tagging with the secret VERSION value
-        git push origin ${{ secrets.VERSION }}  # Push the tag to the remote repository
+        git tag ${{ secrets.VERSION }}
+        git push origin ${{ secrets.VERSION }} 
     
     # Step to create GitHub Release
     - name: Create GitHub Release
@@ -119,5 +119,5 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: ${{ env.Wap_Project_Directory }}\AppPackages\*.msix
-        tag: v1.0.0  # Specify your version tag here
+        tag: LibreLinkUp ${{ secrets.VERSION }}
 
