@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        configuration: [Release]
 
     runs-on: windows-latest
 
@@ -48,18 +48,25 @@ jobs:
 
     # Publish the application to a folder
     - name: Publish the application
-      run: dotnet publish $env:Project_Path -c ${{ matrix.configuration }} -r win-x64 -o ./published
+      run: dotnet msbuild D:\a\LibreLinkUp_Windows\LibreLinkUp_Windows\Stalker.sln /p:PublishDir=./published
 
     # List the files in the published folder (for debugging)
     - name: List files in published folder
       run: |
-        dir ./published
+        dir ./bin/Release/
 
-    # Upload the .exe file to GitHub Release
-    - name: Upload .exe to GitHub Release
+    # Create a ZIP file of the build
+    - name: Create ZIP of the build
+      run: |
+        Compress-Archive -Path ./bin/Release/* -DestinationPath LibreLinkUp_Portable.zip
+    
+    # Upload the ZIP file to GitHub Release
+    - name: Upload ZIP to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ secrets.VERSION }}
-        files: ./published/Stalker.exe  # Path to the .exe file
+        files: LibreLinkUp_Portable.zip  # Path to the ZIP file
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+
