@@ -1,0 +1,1101 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>System.Formats.Nrbf</name>
+    </assembly>
+    <members>
+        <member name="F:System.Formats.Nrbf.AllowedRecordTypes.AnyObject">
+            <summary>
+            Any .NET object (a primitive, a reference type, a reference or single null).
+            </summary>
+        </member>
+        <member name="T:System.Formats.Nrbf.ArrayInfo">
+            <summary>
+            Array information structure.
+            </summary>
+            <remarks>
+            ArrayInfo structures are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/8fac763f-e46d-43a1-b360-80eb83d2c5fb">[MS-NRBF] 2.4.2.1</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.ArrayRecord">
+            <summary>
+            Defines the core behavior for NRBF array records and provides a base for derived classes.
+            </summary>
+        </member>
+        <member name="P:System.Formats.Nrbf.ArrayRecord.Lengths">
+            <summary>
+            When overridden in a derived class, gets a buffer of integers that represent the number of elements in every dimension.
+            </summary>
+            <value>A buffer of integers that represent the number of elements in every dimension.</value>
+        </member>
+        <member name="P:System.Formats.Nrbf.ArrayRecord.Rank">
+            <summary>
+            Gets the rank of the array.
+            </summary>
+            <value>The rank of the array.</value>
+        </member>
+        <member name="P:System.Formats.Nrbf.ArrayRecord.ArrayType">
+            <summary>
+            Gets the type of the array.
+            </summary>
+            <value>The type of the array.</value>
+        </member>
+        <member name="P:System.Formats.Nrbf.ArrayRecord.Id">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Formats.Nrbf.ArrayRecord.GetArray(System.Type,System.Boolean)">
+            <summary>
+            Allocates an array and fills it with the data provided in the serialized records (in case of primitive types like <see cref="T:System.String"/> or <see cref="T:System.Int32"/>) or the serialized records themselves.
+            </summary>
+            <param name="expectedArrayType">Expected array type.</param>
+            <param name="allowNulls">
+              <see langword="true" /> to permit <see langword="null" /> values within the array;
+              otherwise, <see langword="false" />.
+            </param>
+            <returns>An array filled with the data provided in the serialized records.</returns>
+            <exception cref="T:System.InvalidOperationException"><paramref name="expectedArrayType" /> does not match the data from the payload.</exception>
+        </member>
+        <member name="T:System.Formats.Nrbf.ArraySingleObjectRecord">
+            <summary>
+            Represents a single dimensional array of <see cref="T:System.Object" />.
+            </summary>
+            <remarks>
+            ArraySingleObject records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/982b2f50-6367-402a-aaf2-44ee96e2a5e0">[MS-NRBF] 2.4.3.2</see>.
+            </remarks>
+        </member>
+        <member name="M:System.Formats.Nrbf.ArraySingleObjectRecord.GetArray(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:System.Formats.Nrbf.ArraySinglePrimitiveRecord`1">
+            <summary>
+            Represents a single-dimensional array of a primitive type.
+            </summary>
+            <remarks>
+            ArraySinglePrimitive records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/3a50a305-5f32-48a1-a42a-c34054db310b">[MS-NRBF] 2.4.3.3</see>.
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.ArraySinglePrimitiveRecord`1.TypeName">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Formats.Nrbf.ArraySinglePrimitiveRecord`1.GetArray(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:System.Formats.Nrbf.ArraySingleStringRecord">
+            <summary>
+            Represents a single dimensional array of <see langword="string" />.
+            </summary>
+            <remarks>
+            ArraySingleString records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/3d98fd60-d2b4-448a-ac0b-3cd8dea41f9d">[MS-NRBF] 2.4.3.4</see>.
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.ArraySingleStringRecord.TypeName">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Formats.Nrbf.ArraySingleStringRecord.GetArray(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:System.Formats.Nrbf.BinaryArrayType">
+            <summary>
+            Indicates the kind of an array for an NRBF BinaryArray record.
+            </summary>
+            <remarks>
+            BinaryArrayType enumeration is described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/4dbbf3a8-6bc4-4dfc-aa7e-36a35be6ff58">[MS-NRBF] 2.4.1.1</see>.
+            </remarks>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryArrayType.Single">
+            <summary>
+             A single-dimensional array.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryArrayType.Jagged">
+            <summary>
+             An array whose elements are arrays. The elements of a jagged array can be of different dimensions and sizes.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryArrayType.Rectangular">
+            <summary>
+             A multi-dimensional rectangular array.
+            </summary>
+        </member>
+        <member name="T:System.Formats.Nrbf.BinaryLibraryRecord">
+            <summary>
+            Represents a library.
+            </summary>
+            <remarks>
+            BinaryLibrary records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/7fcf30e1-4ad4-4410-8f1a-901a4a1ea832">[MS-NRBF] 2.6.2</see>.
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.BinaryLibraryRecord.Id">
+            <inheritdoc />
+        </member>
+        <member name="T:System.Formats.Nrbf.BinaryObjectStringRecord">
+            <summary>
+            Represents a <see langword="string" /> record.
+            </summary>
+            <remarks>
+            BinaryObjectString records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/eb503ca5-e1f6-4271-a7ee-c4ca38d07996">[MS-NRBF] 2.5.7</see>.
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.BinaryObjectStringRecord.Id">
+            <inheritdoc />
+        </member>
+        <member name="T:System.Formats.Nrbf.BinaryType">
+            <summary>
+            Identifies the remoting type of a class member or array item.
+            </summary>
+            <remarks>
+            BinaryType enumeration is described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/054e5c58-be21-4c86-b1c3-f6d3ce17ec72">[MS-NRBF] 2.1.2.2</see>.
+            </remarks>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryType.Primitive">
+            <summary>
+            The type is defined by <see cref="T:System.Formats.Nrbf.PrimitiveType"/> and it is not a string.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryType.String">
+            <summary>
+            The type is a <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/10b218f5-9b2b-4947-b4b7-07725a2c8127">
+             length prefixed string</see>.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryType.Object">
+            <summary>
+            The type is the <see cref="T:System.Object"/>.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryType.SystemClass">
+            <summary>
+            The type is a class or a struct defined in mscorlib.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryType.Class">
+            <summary>
+            The type is a class or a struct.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryType.ObjectArray">
+            <summary>
+            The type is a single-dimensional array of objects.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryType.StringArray">
+            <summary>
+            The type is a single-dimensional array of strings.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.BinaryType.PrimitiveArray">
+            <summary>
+            The type is a single-dimensional array of a primitive type.
+            </summary>
+        </member>
+        <member name="T:System.Formats.Nrbf.ClassInfo">
+            <summary>
+            Class info that provides type and member names.
+            </summary>
+            <remarks>
+            ClassInfo structures are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/0a192be0-58a1-41d0-8a54-9c91db0ab7bf">[MS-NRBF] 2.3.1.1</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.ClassRecord">
+            <summary>
+            Defines the core behavior for NRBF class records and provides a base for derived classes.
+            </summary>
+        </member>
+        <member name="P:System.Formats.Nrbf.ClassRecord.TypeName">
+            <inheritdoc />
+        </member>
+        <member name="P:System.Formats.Nrbf.ClassRecord.MemberNames">
+            <summary>
+            Gets the names of the serialized members.
+            </summary>
+            <value>The names of the serialized members.</value>
+        </member>
+        <member name="P:System.Formats.Nrbf.ClassRecord.Id">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.HasMember(System.String)">
+            <summary>
+            Checks if member of given name was present in the payload.
+            </summary>
+            <param name="memberName">The name of the member.</param>
+            <returns><see langword="true" /> if it was present, otherwise <see langword="false" />.</returns>
+            <remarks>
+             <para>
+              It's recommended to use this method when dealing with payload that may contain
+              different versions of the same type.
+             </para>
+            </remarks>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)">
+            <summary>
+            Retrieves the value of the provided <paramref name="memberName"/>.
+            </summary>
+            <param name="memberName">The name of the member.</param>
+            <returns>The value.</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException"><paramref name="memberName" /> does not refer to a known member. You can use <see cref="M:System.Formats.Nrbf.ClassRecord.HasMember(System.String)"/> to check if given member exists.</exception>
+            <exception cref="T:System.InvalidOperationException">Member of such name has value of a different type.</exception>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetString(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetBoolean(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetByte(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetSByte(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetInt16(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetUInt16(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetChar(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetInt32(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetUInt32(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetSingle(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetInt64(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetUInt64(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetDouble(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetDecimal(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetTimeSpan(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetDateTime(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetRawValue(System.String)">
+            <returns>
+            <para>For primitive types like <see cref="T:System.Int32"/>, <see langword="string"/> or <see cref="T:System.DateTime"/> returns their value.</para>
+            <para>For nulls, returns a null.</para>
+            <para>For other types that are not arrays, returns an instance of <see cref="T:System.Formats.Nrbf.ClassRecord"/>.</para>
+            <para>For single-dimensional arrays returns <see cref="T:System.Formats.Nrbf.SZArrayRecord`1"/> where the generic type is the primitive type or <see cref="T:System.Formats.Nrbf.ClassRecord"/>.</para>
+            <para>For jagged and multi-dimensional arrays, returns an instance of <see cref="T:System.Formats.Nrbf.ArrayRecord"/>.</para>
+            </returns>
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetArrayRecord(System.String)">
+            <inheritdoc cref="M:System.Formats.Nrbf.ClassRecord.GetClassRecord(System.String)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.ClassRecord.GetSerializationRecord(System.String)">
+            <summary>
+            Retrieves the <see cref="T:System.Formats.Nrbf.SerializationRecord" /> of the provided <paramref name="memberName"/>.
+            </summary>
+            <param name="memberName">The name of the field.</param>
+            <returns>The serialization record, which can be any of <see cref="T:System.Formats.Nrbf.PrimitiveTypeRecord`1"/>,
+            <see cref="T:System.Formats.Nrbf.ClassRecord"/>, <see cref="T:System.Formats.Nrbf.ArrayRecord"/> or <see langword="null" />.
+            </returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException"><paramref name="memberName" /> does not refer to a known member. You can use <see cref="M:System.Formats.Nrbf.ClassRecord.HasMember(System.String)"/> to check if given member exists.</exception>
+            <exception cref="T:System.InvalidOperationException">The specified member is not a <see cref="T:System.Formats.Nrbf.SerializationRecord"/>, but just a raw primitive value.</exception>
+        </member>
+        <member name="T:System.Formats.Nrbf.ClassTypeInfo">
+            <summary>
+            Identifies a class by its name and library id.
+            </summary>
+            <remarks>
+            ClassTypeInfo structures are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/844b24dd-9f82-426e-9b98-05334307a239">[MS-NRBF] 2.1.1.8</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.ClassWithIdRecord">
+            <summary>
+            Represents a class information that references another class record's metadata.
+            </summary>
+            <remarks>
+            ClassWithId records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/2d168388-37f4-408a-b5e0-e48dbce73e26">[MS-NRBF] 2.3.2.5</see>.
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.ClassWithIdRecord.Id">
+            <inheritdoc />
+        </member>
+        <member name="T:System.Formats.Nrbf.ClassWithMembersAndTypesRecord">
+            <summary>
+            Represents a class information with type info and the source library.
+            </summary>
+            <remarks>
+            ClassWithMembersAndTypes records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/847b0b6a-86af-4203-8ed0-f84345f845b9">[MS-NRBF] 2.3.2.1</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.JaggedArrayRecord">
+            <summary>
+            Represents an array of arrays.
+            </summary>
+            <remarks>
+            BinaryArray records are described in <see href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/9c62c928-db4e-43ca-aeba-146256ef67c2">[MS-NRBF] 2.4.3.1</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.MemberPrimitiveTypedRecord`1">
+            <summary>
+            Represents a primitive value other than <see langword="string"/>.
+            </summary>
+            <remarks>
+            MemberPrimitiveTyped records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/c0a190b2-762c-46b9-89f2-c7dabecfc084">[MS-NRBF] 2.5.1</see>.
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.MemberPrimitiveTypedRecord`1.Id">
+            <inheritdoc />
+        </member>
+        <member name="T:System.Formats.Nrbf.MemberReferenceRecord">
+            <summary>
+            Represents a record that contains a reference to another record that contains the actual value.
+            </summary>
+            <remarks>
+            MemberReference records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/eef0aa32-ab03-4b6a-a506-bcdfc10583fd">[MS-NRBF] 2.5.3</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.MemberTypeInfo">
+            <summary>
+            Member type info.
+            </summary>
+            <remarks>
+            MemberTypeInfo structures are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/aa509b5a-620a-4592-a5d8-7e9613e0a03e">[MS-NRBF] 2.3.1.2</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.MessageEndRecord">
+            <summary>
+            Represents the record that marks the end of the binary format stream.
+            </summary>
+            <remarks>
+            MessageEnd records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/de6a574b-c596-4d83-9df7-63c0077acd32">[MS-NRBF] 2.6.3</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.NrbfDecoder">
+            <summary>
+            Provides stateless methods for decoding .NET Remoting Binary Format (NRBF) encoded data.
+            </summary>
+        </member>
+        <member name="M:System.Formats.Nrbf.NrbfDecoder.StartsWithPayloadHeader(System.ReadOnlySpan{System.Byte})">
+            <summary>
+            Checks if given buffer starts with <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/a7e578d3-400a-4249-9424-7529d10d1b3c">NRBF payload header</see>.
+            </summary>
+            <param name="bytes">The buffer to inspect.</param>
+            <returns><see langword="true" /> if it starts with NRBF payload header; otherwise, <see langword="false" />.</returns>
+        </member>
+        <member name="M:System.Formats.Nrbf.NrbfDecoder.StartsWithPayloadHeader(System.IO.Stream)">
+            <summary>
+            Checks if given stream starts with <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/a7e578d3-400a-4249-9424-7529d10d1b3c">NRBF payload header</see>.
+            </summary>
+            <param name="stream">The stream to inspect. The stream must be both readable and seekable.</param>
+            <returns><see langword="true" /> if it starts with NRBF payload header; otherwise, <see langword="false" />.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="stream" /> is <see langword="null" />.</exception>
+            <exception cref="T:System.NotSupportedException">The stream does not support reading or seeking.</exception>
+            <exception cref="T:System.ObjectDisposedException">The stream was closed.</exception>
+            <exception cref="T:System.IO.IOException">An I/O error occurred.</exception>
+            <remarks><para>When this method returns, <paramref name="stream" /> will be restored to its original position.</para></remarks>
+        </member>
+        <member name="M:System.Formats.Nrbf.NrbfDecoder.Decode(System.IO.Stream,System.Formats.Nrbf.PayloadOptions,System.Boolean)">
+            <summary>
+            Decodes the provided NRBF payload.
+            </summary>
+            <param name="payload">The NRBF payload.</param>
+            <param name="options">Options to control behavior during parsing.</param>
+            <param name="leaveOpen">
+              <see langword="true" /> to leave <paramref name="payload"/> payload open
+              after the reading is finished; otherwise, <see langword="false" />.
+            </param>
+            <returns>A <see cref="T:System.Formats.Nrbf.SerializationRecord"/> that represents the root object.
+            It can be either <see cref="T:System.Formats.Nrbf.PrimitiveTypeRecord`1"/>,
+            a <see cref="T:System.Formats.Nrbf.ClassRecord"/> or an <see cref="T:System.Formats.Nrbf.ArrayRecord"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="payload"/> is <see langword="null" />.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="payload"/> does not support reading or is already closed.</exception>
+            <exception cref="T:System.Runtime.Serialization.SerializationException">Reading from <paramref name="payload"/> encounters invalid NRBF data.</exception>
+            <exception cref="T:System.IO.IOException">An I/O error occurred.</exception>
+            <exception cref="T:System.NotSupportedException">
+            Reading from <paramref name="payload"/> encounters not supported records.
+            For example, arrays with non-zero offset or not supported record types
+            (<see cref="F:System.Formats.Nrbf.SerializationRecordType.ClassWithMembers"/>, <see cref="F:System.Formats.Nrbf.SerializationRecordType.SystemClassWithMembers"/>,
+            <see cref="F:System.Formats.Nrbf.SerializationRecordType.MethodCall"/> or <see cref="F:System.Formats.Nrbf.SerializationRecordType.MethodReturn"/>).
+            </exception>
+            <exception cref="T:System.Text.DecoderFallbackException">Reading from <paramref name="payload"/>
+            encounters an invalid UTF8 sequence.</exception>
+            <exception cref="T:System.IO.EndOfStreamException">The end of the stream is reached before reading <see cref="F:System.Formats.Nrbf.SerializationRecordType.MessageEnd"/> record.</exception>
+        </member>
+        <member name="M:System.Formats.Nrbf.NrbfDecoder.Decode(System.IO.Stream,System.Collections.Generic.IReadOnlyDictionary{System.Formats.Nrbf.SerializationRecordId,System.Formats.Nrbf.SerializationRecord}@,System.Formats.Nrbf.PayloadOptions,System.Boolean)">
+            <param name="payload">The NRBF payload.</param>
+            <param name="recordMap">
+              When this method returns, contains a mapping of <see cref="T:System.Formats.Nrbf.SerializationRecordId" /> to the associated serialization record.
+              This parameter is treated as uninitialized.
+            </param>
+            <param name="options">An object that describes optional <see cref="T:System.Formats.Nrbf.PayloadOptions"/> parameters to use.</param>
+            <param name="leaveOpen">
+              <see langword="true" /> to leave <paramref name="payload"/> payload open
+              after the reading is finished; otherwise, <see langword="false" />.
+            </param>
+            <inheritdoc cref="M:System.Formats.Nrbf.NrbfDecoder.Decode(System.IO.Stream,System.Formats.Nrbf.PayloadOptions,System.Boolean)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.NrbfDecoder.DecodeClassRecord(System.IO.Stream,System.Formats.Nrbf.PayloadOptions,System.Boolean)">
+            <summary>
+            Decodes the provided NRBF payload that is expected to contain an instance of any class (or struct) that is not an <see cref="T:System.Array"/> or a primitive type.
+            </summary>
+            <returns>A <see cref="T:System.Formats.Nrbf.ClassRecord"/> that represents the root object.</returns>
+            <inheritdoc cref="M:System.Formats.Nrbf.NrbfDecoder.Decode(System.IO.Stream,System.Formats.Nrbf.PayloadOptions,System.Boolean)"/>
+        </member>
+        <member name="M:System.Formats.Nrbf.NrbfDecoder.PushFirstNestedRecordInfo(System.Formats.Nrbf.SerializationRecord,System.Collections.Generic.Stack{System.Formats.Nrbf.NextInfo})">
+            <summary>
+            This method is responsible for pushing only the FIRST read info
+            of the NESTED record into the <paramref name="readStack"/>.
+            It's not pushing all of them, because it could be used as a vector of attack.
+            Example: BinaryArrayRecord with Array.MaxLength length,
+            where first item turns out to be <see cref="T:System.Formats.Nrbf.ObjectNullMultipleRecord"/>
+            that provides Array.MaxLength nulls.
+            </summary>
+        </member>
+        <member name="T:System.Formats.Nrbf.ObjectNullMultiple256Record">
+            <summary>
+            Represents multiple (less than 256) <see langword="null" />.
+            </summary>
+            <remarks>
+            ObjectNullMultiple256 records are described in <see href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/24ae84a0-781f-45bf-a1ac-49f6a65af5dd">[MS-NRBF] 2.5.6</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.ObjectNullMultipleRecord">
+            <summary>
+            Represents multiple <see langword="null" />.
+            </summary>
+            <remarks>
+            ObjectNullMultiple records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/f4abb5dd-aab7-4e0a-9d77-1d6c99f5779e">[MS-NRBF] 2.5.5</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.ObjectNullRecord">
+            <summary>
+            Represents a <see langword="null" />.
+            </summary>
+            <remarks>
+            ObjectNull records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/fe51522c-23d1-48dd-9913-c84894abc127">[MS-NRBF] 2.5.4</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.PayloadOptions">
+            <summary>
+            Defines a variety of configuration options for decoding NRBF payloads.
+            </summary>
+        </member>
+        <member name="M:System.Formats.Nrbf.PayloadOptions.#ctor">
+            <summary>
+            Initializes a <see cref="T:System.Formats.Nrbf.PayloadOptions"/> instance with default values.
+            </summary>
+        </member>
+        <member name="P:System.Formats.Nrbf.PayloadOptions.TypeNameParseOptions">
+            <summary>
+            Configuration options for parsing <see cref="T:System.Reflection.Metadata.TypeName"/> instances.
+            </summary>
+        </member>
+        <member name="P:System.Formats.Nrbf.PayloadOptions.UndoTruncatedTypeNames">
+            <summary>
+            Gets or sets a value that indicates whether type name truncation is undone.
+            </summary>
+            <value><see langword="true" /> if truncated type names should be reassembled; otherwise, <see langword="false" />.</value>
+            <remarks>
+            <para>
+            Example:
+            TypeName: "Namespace.TypeName`1[[Namespace.GenericArgName"
+            LibraryName: "AssemblyName]]"
+            Is combined into "Namespace.TypeName`1[[Namespace.GenericArgName, AssemblyName]]"
+            </para>
+            <para>
+            Setting this to <see langword="true" /> can render <see cref="T:System.Formats.Nrbf.NrbfDecoder"/> susceptible to Denial of Service
+            attacks when parsing or handling malicious input.
+            </para>
+            <para>The default value is <see langword="false" />.</para>
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.PrimitiveType">
+            <summary>
+            Primitive type.
+            </summary>
+            <remarks>
+            PrimitiveTypeEnumeration enumeration is described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/4e77849f-89e3-49db-8fb9-e77ee4bc7214">[MS-NRBF] 2.1.2.3</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.PrimitiveTypeRecord">
+            <summary>
+            Represents a record that itself represents a primitive value.
+            </summary>
+            <remarks>
+            <para>
+            The NRBF specification considers the following types to be primitive:
+            <see cref="T:System.String"/>, <see cref="T:System.Boolean"/>, <see cref="T:System.Byte"/>, <see cref="T:System.SByte"/>
+            <see cref="T:System.Char"/>, <see cref="T:System.Int16"/>, <see cref="T:System.UInt16"/>,
+            <see cref="T:System.Int32"/>, <see cref="T:System.UInt32"/>, <see cref="T:System.Int64"/>, <see cref="T:System.UInt64"/>,
+            <see cref="T:System.Single"/>, <see cref="T:System.Double"/>, <see cref="T:System.Decimal"/>,
+            <see cref="T:System.DateTime"/> and <see cref="T:System.TimeSpan"/>.
+            </para>
+            <para>Other serialization records are represented with <see cref="T:System.Formats.Nrbf.ClassRecord"/> or <see cref="T:System.Formats.Nrbf.ArrayRecord"/>.</para>
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.PrimitiveTypeRecord.Value">
+            <summary>
+            Gets the serialized primitive value.
+            </summary>
+            <value>The primitive value.</value>
+        </member>
+        <member name="T:System.Formats.Nrbf.PrimitiveTypeRecord`1">
+            <summary>
+            Represents a record that itself represents the primitive value of <typeparamref name="T"/> type.
+            </summary>
+            <typeparam name="T">The type of the primitive value.</typeparam>
+            <remarks>
+            <para>
+            The NRBF specification considers the following types to be primitive:
+            <see cref="T:System.String"/>, <see cref="T:System.Boolean"/>, <see cref="T:System.Byte"/>, <see cref="T:System.SByte"/>
+            <see cref="T:System.Char"/>, <see cref="T:System.Int16"/>, <see cref="T:System.UInt16"/>,
+            <see cref="T:System.Int32"/>, <see cref="T:System.UInt32"/>, <see cref="T:System.Int64"/>, <see cref="T:System.UInt64"/>,
+            <see cref="T:System.Single"/>, <see cref="T:System.Double"/>, <see cref="T:System.Decimal"/>,
+            <see cref="T:System.DateTime"/> and <see cref="T:System.TimeSpan"/>.
+            </para>
+            <para>Other serialization records are represented with <see cref="T:System.Formats.Nrbf.ClassRecord"/> or <see cref="T:System.Formats.Nrbf.ArrayRecord"/>.</para>
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.PrimitiveTypeRecord`1.Value">
+            <summary>
+            Gets the serialized primitive value.
+            </summary>
+            <value>The primitive value.</value>
+        </member>
+        <member name="P:System.Formats.Nrbf.PrimitiveTypeRecord`1.TypeName">
+            <inheritdoc />
+        </member>
+        <member name="T:System.Formats.Nrbf.SerializationRecord">
+            <summary>
+            Abstract class that represents the serialization record.
+            </summary>
+            <remarks>
+             <para>
+              Every instance returned to the end user can be either <see cref="T:System.Formats.Nrbf.PrimitiveTypeRecord`1"/>,
+              a <see cref="T:System.Formats.Nrbf.ClassRecord"/>, or an <see cref="T:System.Formats.Nrbf.ArrayRecord"/>.
+             </para>
+            </remarks>
+        </member>
+        <member name="P:System.Formats.Nrbf.SerializationRecord.RecordType">
+            <summary>
+            Gets the type of the record.
+            </summary>
+            <value>The type of the record.</value>
+        </member>
+        <member name="P:System.Formats.Nrbf.SerializationRecord.Id">
+            <summary>
+            Gets the ID of the record.
+            </summary>
+            <value>The ID of the record.</value>
+        </member>
+        <member name="P:System.Formats.Nrbf.SerializationRecord.TypeName">
+            <summary>
+            Gets the name of the serialized type.
+            </summary>
+            <value>The name of the serialized type.</value>
+        </member>
+        <member name="M:System.Formats.Nrbf.SerializationRecord.TypeNameMatches(System.Type)">
+            <summary>
+            Compares the type name read from the payload against the specified type.
+            </summary>
+            <remarks>
+            <para>This method ignores assembly names.</para>
+            <para>This method does NOT take into account member names or their types.</para>
+            </remarks>
+            <param name="type">The type to compare against.</param>
+            <returns><see langword="true" /> if the serialized type name match provided type; otherwise, <see langword="false" />.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="type" /> is <see langword="null" />.</exception>
+        </member>
+        <member name="M:System.Formats.Nrbf.SerializationRecord.GetValue">
+            <summary>
+            Gets the primitive, string or null record value.
+            For reference records, it returns the referenced record.
+            For other records, it returns the records themselves.
+            </summary>
+            <remarks>
+            Overrides of this method should take care not to allow
+            the introduction of cycles, even in the face of adversarial
+            edges in the object graph.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.SerializationRecordId">
+            <summary>
+            The ID of <see cref="T:System.Formats.Nrbf.SerializationRecord" />.
+            </summary>
+        </member>
+        <member name="M:System.Formats.Nrbf.SerializationRecordId.Equals(System.Formats.Nrbf.SerializationRecordId)">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Formats.Nrbf.SerializationRecordId.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Formats.Nrbf.SerializationRecordId.GetHashCode">
+            <inheritdoc />
+        </member>
+        <member name="T:System.Formats.Nrbf.SerializationRecordType">
+            <summary>
+            Record type.
+            </summary>
+            <remarks>
+            SerializationRecordType enumeration is described in <see href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/954a0657-b901-4813-9398-4ec732fe8b32">[MS-NRBF] 2.1.2.1</see>.
+            </remarks>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.SerializedStreamHeader">
+            <summary>
+            The NRBF header (the first record in NRBF payload).
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ClassWithId">
+            <summary>
+            Class information that references another class record's metadata.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.SystemClassWithMembers">
+            <summary>
+            A system class information without type info.
+            </summary>
+            <remarks>Not supported by design.</remarks>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ClassWithMembers">
+            <summary>
+            A class information with source library, but without type info.
+            </summary>
+            <remarks>Not supported by design.</remarks>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.SystemClassWithMembersAndTypes">
+            <summary>
+            A system class information with type info.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ClassWithMembersAndTypes">
+            <summary>
+            A class information with type info and the source library.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.BinaryObjectString">
+            <summary>
+            A <see langword="string" />.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.BinaryArray">
+            <summary>
+            An array of any rank or element type.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.MemberPrimitiveTyped">
+            <summary>
+            A primitive value other than <see langword="string"/>.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.MemberReference">
+            <summary>
+            A record that contains a reference to another record that contains the actual value.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ObjectNull">
+            <summary>
+            A single <see langword="null" /> value.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.MessageEnd">
+            <summary>
+            The record that marks the end of the binary format stream.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.BinaryLibrary">
+            <summary>
+            A record that associates a numeric identifier with a named library.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ObjectNullMultiple256">
+            <summary>
+            Multiple (less than 256) <see langword="null" /> values.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ObjectNullMultiple">
+            <summary>
+            Multiple <see langword="null" />.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ArraySinglePrimitive">
+            <summary>
+            A single-dimensional array of a primitive type.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ArraySingleObject">
+            <summary>
+            A single-dimensional array of <see cref="T:System.Object" /> values.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.ArraySingleString">
+            <summary>
+            A single-dimensional array of <see langword="string" /> values.
+            </summary>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.MethodCall">
+            <summary>
+            A remote method call.
+            </summary>
+            <remarks>Not supported by design.</remarks>
+        </member>
+        <member name="F:System.Formats.Nrbf.SerializationRecordType.MethodReturn">
+            <summary>
+            An information returned by a remote method.
+            </summary>
+            <remarks>Not supported by design.</remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.SerializedStreamHeaderRecord">
+            <summary>
+            Represents the NRBF header, it must be the first record in NRBF payload.
+            </summary>
+            <remarks>
+            SerializedStreamHeader records are described in <see href="https://learn.microsoft.com/openspecs/windows_protocols/ms-nrbf/a7e578d3-400a-4249-9424-7529d10d1b3c">[MS-NRBF] 2.6.1</see>.
+            </remarks>
+        </member>
+        <member name="T:System.Formats.Nrbf.SystemClassWithMembersAndTypesRecord">
+            <summary>
+            Class information with type info.
+            </summary>
+            <remarks>
+            SystemClassWithMembersAndType records are described in <see href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nrbf/ecb47445-831f-4ef5-9c9b-afd4d06e3657">[MS-NRBF] 2.3.2.3</see>.
+            </remarks>
+        </member>
+        <member name="M:System.Formats.Nrbf.SZArrayOfRecords.GetArray(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:System.Formats.Nrbf.SZArrayRecord`1">
+            <summary>
+            Defines the core behavior for NRBF single dimensional, zero-indexed array records and provides a base for derived classes.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:System.Formats.Nrbf.SZArrayRecord`1.Length">
+            <summary>
+            Gets the length of the array.
+            </summary>
+            <value>The length of the array.</value>
+        </member>
+        <member name="P:System.Formats.Nrbf.SZArrayRecord`1.Lengths">
+            <inheritdoc/>
+        </member>
+        <member name="M:System.Formats.Nrbf.SZArrayRecord`1.GetArray(System.Boolean)">
+            <summary>
+            When overridden in a derived class, allocates an array of <typeparamref name="T"/> and fills it with the data provided in the serialized records (in case of primitive types like <see cref="T:System.String"/> or <see cref="T:System.Int32"/>) or the serialized records themselves.
+            </summary>
+            <param name="allowNulls">
+              <see langword="true" /> to permit <see langword="null" /> values within the array;
+              otherwise, <see langword="false" />.
+            </param>
+            <returns>An array filled with the data provided in the serialized records.</returns>
+        </member>
+        <member name="M:System.Formats.Nrbf.Utils.BinaryReaderExtensions.ReadPrimitiveValue(System.IO.BinaryReader,System.Formats.Nrbf.PrimitiveType)">
+            <summary>
+             Reads a primitive of <paramref name="primitiveType"/> from the given <paramref name="reader"/>.
+            </summary>
+        </member>
+        <member name="M:System.Formats.Nrbf.Utils.BinaryReaderExtensions.CreateDateTimeFromData(System.UInt64)">
+            <summary>
+             Creates a <see cref="T:System.DateTime"/> object from raw data with validation.
+            </summary>
+            <exception cref="T:System.Runtime.Serialization.SerializationException"><paramref name="dateData"/> was invalid.</exception>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.ExperimentalAttribute">
+            <summary>
+             Indicates that an API is experimental and it may change in the future.
+            </summary>
+            <remarks>
+              This attribute allows call sites to be flagged with a diagnostic that indicates that an experimental
+              feature is used. Authors can use this attribute to ship preview features in their assemblies.
+            </remarks>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.ExperimentalAttribute.#ctor(System.String)">
+            <summary>
+             Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.ExperimentalAttribute"/> class, specifying the ID that the compiler will use
+             when reporting a use of the API the attribute applies to.
+            </summary>
+            <param name="diagnosticId">The ID that the compiler will use when reporting a use of the API the attribute applies to.</param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.ExperimentalAttribute.DiagnosticId">
+            <summary>
+             Gets the ID that the compiler will use when reporting a use of the API the attribute applies to.
+            </summary>
+            <value>The unique diagnostic ID.</value>
+            <remarks>
+             The diagnostic ID is shown in build output for warnings and errors.
+             <para>This property represents the unique ID that can be used to suppress the warnings or errors, if needed.</para>
+            </remarks>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.ExperimentalAttribute.UrlFormat">
+            <summary>
+             Gets or sets the URL for corresponding documentation.
+             The API accepts a format string instead of an actual URL, creating a generic URL that includes the diagnostic ID.
+            </summary>
+            <value>The format string that represents a URL to corresponding documentation.</value>
+            <remarks>An example format string is <c>https://contoso.com/obsoletion-warnings/{0}</c>.</remarks>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute">
+            <summary>
+            Indicates that the specified method requires the ability to generate new code at runtime,
+            for example through <see cref="N:System.Reflection"/>.
+            </summary>
+            <remarks>
+            This allows tools to understand which methods are unsafe to call when compiling ahead of time.
+            </remarks>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute"/> class
+            with the specified message.
+            </summary>
+            <param name="message">
+            A message that contains information about the usage of dynamic code.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute.Message">
+            <summary>
+            Gets a message that contains information about the usage of dynamic code.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute.Url">
+            <summary>
+            Gets or sets an optional URL that contains more information about the method,
+            why it requires dynamic code, and what options a consumer has to deal with it.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+            <summary>Specifies that null is allowed as an input even if the corresponding type disallows it.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute">
+            <summary>Specifies that null is disallowed as an input even if the corresponding type allows it.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute">
+            <summary>Specifies that an output may be null even if the corresponding type disallows it.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullAttribute">
+            <summary>Specifies that an output will not be null even if the corresponding type allows it. Specifies that an input argument was not null when the call returns.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute">
+            <summary>Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue"/>, the parameter may be null even if the corresponding type disallows it.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>Initializes the attribute with the specified return value condition.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated parameter may be null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue">
+            <summary>Gets the return value condition.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute">
+            <summary>Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue"/>, the parameter will not be null even if the corresponding type allows it.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>Initializes the attribute with the specified return value condition.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated parameter will not be null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue">
+            <summary>Gets the return value condition.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute">
+            <summary>Specifies that the output will be non-null if the named parameter is non-null.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.#ctor(System.String)">
+            <summary>Initializes the attribute with the associated parameter name.</summary>
+            <param name="parameterName">
+            The associated parameter name.  The output will be non-null if the argument to the parameter specified is non-null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.ParameterName">
+            <summary>Gets the associated parameter name.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute">
+            <summary>Applied to a method that will never return under any circumstance.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
+            <summary>Specifies that the method will not return if the associated Boolean parameter is passed the specified value.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.#ctor(System.Boolean)">
+            <summary>Initializes the attribute with the specified parameter value.</summary>
+            <param name="parameterValue">
+            The condition parameter value. Code after the method will be considered unreachable by diagnostics if the argument to
+            the associated parameter matches this value.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.ParameterValue">
+            <summary>Gets the condition parameter value.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute">
+            <summary>Specifies that the method or property will ensure that the listed field and property members have not-null values.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.#ctor(System.String)">
+            <summary>Initializes the attribute with a field or property member.</summary>
+            <param name="member">
+            The field or property member that is promised to be not-null.
+            </param>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.#ctor(System.String[])">
+            <summary>Initializes the attribute with the list of field and property members.</summary>
+            <param name="members">
+            The list of field and property members that are promised to be not-null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.Members">
+            <summary>Gets field or property member names.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute">
+            <summary>Specifies that the method or property will ensure that the listed field and property members have not-null values when returning with the specified return value condition.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.#ctor(System.Boolean,System.String)">
+            <summary>Initializes the attribute with the specified return value condition and a field or property member.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated field or property member will not be null.
+            </param>
+            <param name="member">
+            The field or property member that is promised to be not-null.
+            </param>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.#ctor(System.Boolean,System.String[])">
+            <summary>Initializes the attribute with the specified return value condition and list of field and property members.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated field and property members will not be null.
+            </param>
+            <param name="members">
+            The list of field and property members that are promised to be not-null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.ReturnValue">
+            <summary>Gets the return value condition.</summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.Members">
+            <summary>Gets field or property member names.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_ArrayContainedNulls">
+            <summary>The array contained null(s).</summary>
+        </member>
+        <member name="P:System.SR.Serialization_InvalidValue">
+            <summary>Invalid value: `{0}`.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_UnexpectedNullRecordCount">
+            <summary>Unexpected Null Record count.</summary>
+        </member>
+        <member name="P:System.SR.NotSupported_RecordType">
+            <summary>{0} Record Type is not supported by design.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_InvalidReference">
+            <summary>Invalid member reference.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_InvalidTypeName">
+            <summary>Invalid type name.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_TypeMismatch">
+            <summary>Expected the array to be of type {0}, but its element type was {1}.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_InvalidTypeOrAssemblyName">
+            <summary>Invalid type or assembly name.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_DuplicateMemberName">
+            <summary>Duplicate member name.</summary>
+        </member>
+        <member name="P:System.SR.Argument_NonSeekableStream">
+            <summary>Stream does not support seeking.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_DuplicateSerializationRecordId">
+            <summary>Duplicate Serialization Record Id: `{0}`.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_MemberTypeMismatchException">
+            <summary>Specified member '{0}' was not of the expected type.</summary>
+        </member>
+        <member name="P:System.SR.NotSupported_NonZeroOffsets">
+            <summary>Only arrays with zero offsets are supported.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_InvalidAssemblyName">
+            <summary>Invalid assembly name.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_InvalidFormat">
+            <summary>Invalid format.</summary>
+        </member>
+        <member name="P:System.SR.Serialization_SurrogateCharacter">
+            <summary>A surrogate character was read.</summary>
+        </member>
+        <member name="T:System.Runtime.InteropServices.LibraryImportAttribute">
+            <summary>
+            Attribute used to indicate a source generator should create a function for marshalling
+            arguments instead of relying on the runtime to generate an equivalent marshalling function at run-time.
+            </summary>
+            <remarks>
+            This attribute is meaningless if the source generator associated with it is not enabled.
+            The current built-in source generator only supports C# and only supplies an implementation when
+            applied to static, partial, non-generic methods.
+            </remarks>
+        </member>
+        <member name="M:System.Runtime.InteropServices.LibraryImportAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Runtime.InteropServices.LibraryImportAttribute"/>.
+            </summary>
+            <param name="libraryName">Name of the library containing the import.</param>
+        </member>
+        <member name="P:System.Runtime.InteropServices.LibraryImportAttribute.LibraryName">
+            <summary>
+            Gets the name of the library containing the import.
+            </summary>
+        </member>
+        <member name="P:System.Runtime.InteropServices.LibraryImportAttribute.EntryPoint">
+            <summary>
+            Gets or sets the name of the entry point to be called.
+            </summary>
+        </member>
+        <member name="P:System.Runtime.InteropServices.LibraryImportAttribute.StringMarshalling">
+            <summary>
+            Gets or sets how to marshal string arguments to the method.
+            </summary>
+            <remarks>
+            If this field is set to a value other than <see cref="F:System.Runtime.InteropServices.StringMarshalling.Custom" />,
+            <see cref="P:System.Runtime.InteropServices.LibraryImportAttribute.StringMarshallingCustomType" /> must not be specified.
+            </remarks>
+        </member>
+        <member name="P:System.Runtime.InteropServices.LibraryImportAttribute.StringMarshallingCustomType">
+            <summary>
+            Gets or sets the <see cref="T:System.Type"/> used to control how string arguments to the method are marshalled.
+            </summary>
+            <remarks>
+            If this field is specified, <see cref="P:System.Runtime.InteropServices.LibraryImportAttribute.StringMarshalling" /> must not be specified
+            or must be set to <see cref="F:System.Runtime.InteropServices.StringMarshalling.Custom" />.
+            </remarks>
+        </member>
+        <member name="P:System.Runtime.InteropServices.LibraryImportAttribute.SetLastError">
+            <summary>
+            Gets or sets whether the callee sets an error (SetLastError on Windows or errno
+            on other platforms) before returning from the attributed method.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.InteropServices.StringMarshalling">
+            <summary>
+            Specifies how strings should be marshalled for generated p/invokes
+            </summary>
+        </member>
+        <member name="F:System.Runtime.InteropServices.StringMarshalling.Custom">
+            <summary>
+            Indicates the user is supplying a specific marshaller in <see cref="P:System.Runtime.InteropServices.LibraryImportAttribute.StringMarshallingCustomType"/>.
+            </summary>
+        </member>
+        <member name="F:System.Runtime.InteropServices.StringMarshalling.Utf8">
+            <summary>
+            Use the platform-provided UTF-8 marshaller.
+            </summary>
+        </member>
+        <member name="F:System.Runtime.InteropServices.StringMarshalling.Utf16">
+            <summary>
+            Use the platform-provided UTF-16 marshaller.
+            </summary>
+        </member>
+    </members>
+</doc>
