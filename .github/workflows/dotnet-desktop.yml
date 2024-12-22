@@ -108,6 +108,7 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: ${{ secrets.VERSION }}
         files: ${{ env.Wap_Project_Directory }}\AppPackages\*.msix  # Path to the MSIX package
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}  # Use the GITHUB_TOKEN for authentication
