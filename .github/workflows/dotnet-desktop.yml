@@ -101,7 +101,7 @@ jobs:
       with:
         files: ${{ env.Wap_Project_Directory }}\AppPackages\*.msix
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
     # Step to upload the MSIX package to the release
     - name: Upload MSIX package to GitHub Release
