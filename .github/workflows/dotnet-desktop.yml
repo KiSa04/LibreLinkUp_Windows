@@ -55,11 +55,17 @@ jobs:
       run: |
         dir ./bin/Release/
 
-    # Upload the .exe file to GitHub Release
-    - name: Upload .exe to GitHub Release
+    # Create a ZIP file of the build
+    - name: Create ZIP of the build
+      run: |
+        zip -r Stalker.zip ./bin/Release/*
+    
+    # Upload the ZIP file to GitHub Release
+    - name: Upload ZIP to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ secrets.VERSION }}
-        files: ./bin/Release/Stalker.exe  # Path to the .exe file
+        files: Stalker.zip  # Path to the ZIP file
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
