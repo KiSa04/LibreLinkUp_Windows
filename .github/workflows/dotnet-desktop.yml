@@ -29,11 +29,6 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Install MSIX Packaging Tool
-      run: |
-        Invoke-WebRequest -Uri https://aka.ms/msix-packaging-tool-installer -OutFile msixpackagingtool.exe
-        Start-Process -FilePath msixpackagingtool.exe -ArgumentList "/quiet", "/install" -Wait
-
     # Restore dependencies
     - name: Restore the application
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
@@ -53,12 +48,12 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 
-    # Create MSIX package from published files using MSIX Packaging Tool
-    - name: Create MSIX package
+    # Zip the published files (Optional step)
+    - name: Zip the published files
       run: |
-        New-AppxPackage -PackagePath './AppPackages' -PackageName 'MyApp.msix' -InputPath './published' -AppUserModelId 'MyApp' -Publisher 'CN=MyPublisher' -Version '1.0.0.0'
+        Compress-Archive -Path ./published/* -DestinationPath ./AppPackages/Stalker.exe
 
-    # List the files in AppPackages to verify MSIX package exists
+    # List the files in AppPackages to verify the exe file exists
     - name: List files in AppPackages
       run: |
         ls ./AppPackages
@@ -70,11 +65,11 @@ jobs:
         git tag ${{ secrets.VERSION }}
         git push origin ${{ secrets.VERSION }}
 
-    # Upload MSIX package to GitHub Release
-    - name: Upload MSIX package to GitHub Release
+    # Upload the app package to GitHub Release
+    - name: Upload app package to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ secrets.VERSION }}
-        files: ./AppPackages/*.msix
+        files: ./AppPackages/*.zip  # Path to the zip package
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
