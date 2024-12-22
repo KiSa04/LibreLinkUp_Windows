@@ -29,13 +29,12 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    # Restore dependencies without .NET workload
     - name: Restore the application
       run: dotnet restore $env:Solution_Name
 
-    # Build the application
     - name: Build the application
-      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }} --output ./bin/$env:Configuration
+      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }} --runtime win-x64
+
 
     # Publish the application to a folder
     - name: Publish the application
