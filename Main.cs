@@ -113,8 +113,8 @@ namespace Stalker
             try
             {
                 Leaf.xNet.HttpRequest postReq = new Leaf.xNet.HttpRequest();
-                var loginUrl = "https://api-eu.libreview.io/llu/auth/login";
-                var conUrl = "https://api-eu.libreview.io/llu/connections";
+                var loginUrl = "https://api.libreview.io/llu/auth/login";
+                var conUrl = "https://api.libreview.io/llu/connections";
 
                 void addHeaders(Leaf.xNet.HttpRequest httpRequest, string auth, string hash)
                 {
