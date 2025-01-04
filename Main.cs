@@ -141,24 +141,53 @@ namespace Stalker
                 var requestBody = new { email = email, password = password };
                 var json = JsonConvert.SerializeObject(requestBody);
                 var request = postReq.Post(loginUrl, json, "application/json");
+                string region = null;
 
                 if (request.StatusCode.ToString() == "OK")
                 {
-                    dynamic jsonResp = JsonConvert.DeserializeObject(request.ToString());
-                    authToken = jsonResp.data.authTicket.token;
-                    string input = jsonResp.data.user.id;
-                    sha256Hash = ComputeSha256Hash(input);
-                    postReq.ClearAllHeaders();
-                    addHeaders(postReq, authToken, sha256Hash);
-                    var connectionsResp = postReq.Get(conUrl);
-
-                    if (connectionsResp.StatusCode.ToString() == "OK")
+                    string requested = null;
+                    bool actual = false;
+                    dynamic JsonLogin = JsonConvert.DeserializeObject(request.ToString());
+                    if (JsonLogin.data.region != null)
                     {
-                        dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
-                        patientId = jsonCon.data[0].patientId;
+                        region = $"-{JsonLogin.data.region}";
+                        loginUrl = $"https://api{region}.libreview.io/llu/auth/login";
+                        conUrl = $"https://api{region}.libreview.io/llu/connections";
+                        postReq.ClearAllHeaders();
+                        addHeaders(postReq, null, null);
+                        requested = postReq.Post(loginUrl, json, "application/json").ToString();
+                    }
+                    else
+                        actual = true;
+
+                    string input = null;
+                    if (requested != null || actual == true)
+                    {
+                        if (requested != null)
+                        {
+                            dynamic jsonResp = JsonConvert.DeserializeObject(requested);
+                            authToken = jsonResp.data.authTicket.token;
+                            input = jsonResp.data.user.id;
+
+                        }
+                        else if (actual == true)
+                        {
+                            authToken = JsonLogin.data.authTicket.token;
+                            input = JsonLogin.data.user.id;
+                        }
+                        sha256Hash = ComputeSha256Hash(input);
                         postReq.ClearAllHeaders();
                         addHeaders(postReq, authToken, sha256Hash);
-                        return true;
+                        var connectionsResp = postReq.Get(conUrl);
+
+                        if (connectionsResp.StatusCode.ToString() == "OK")
+                        {
+                            dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
+                            patientId = jsonCon.data[0].patientId;
+                            postReq.ClearAllHeaders();
+                            addHeaders(postReq, authToken, sha256Hash);
+                            return true;
+                        }
                     }
                 }
                 return false;
@@ -585,22 +614,38 @@ namespace Stalker
                 var requestBody = new { email = email, password = password };
                 var json = JsonConvert.SerializeObject(requestBody);
                 var loginResp = postReq.Post(loginUrl, json, "application/json");
-
-                if (loginResp.StatusCode.ToString() == "OK")
+                string request = null;
+                if (((int)loginResp.StatusCode) == 200)
                 {
                     dynamic JsonLogin = JsonConvert.DeserializeObject(loginResp.ToString());
-                    region = $"-{JsonLogin.data.region}";
-                    loginUrl = $"https://api{region}.libreview.io/llu/auth/login";
-                    conUrl = $"https://api{region}.libreview.io/llu/connections";
-                    postReq.ClearAllHeaders();
-                    addHeaders(postReq, null, null);
-                    var request = postReq.Post(loginUrl, json, "application/json");
-
-                    if (request.StatusCode.ToString() == "OK")
+                    bool actual = false;
+                    if (JsonLogin.data.region != null)
                     {
-                        dynamic jsonResp = JsonConvert.DeserializeObject(request.ToString());
-                        authToken = jsonResp.data.authTicket.token;
-                        string input = jsonResp.data.user.id;
+                        region = $"-{JsonLogin.data.region}";
+                        loginUrl = $"https://api{region}.libreview.io/llu/auth/login";
+                        conUrl = $"https://api{region}.libreview.io/llu/connections";
+                        postReq.ClearAllHeaders();
+                        addHeaders(postReq, null, null);
+                        request = postReq.Post(loginUrl, json, "application/json").ToString();
+                    }
+                    else
+                        actual = true;
+
+                    string input = null;
+                    if (request != null || actual == true)
+                    {
+                        if (request != null)
+                        {
+                            dynamic jsonResp = JsonConvert.DeserializeObject(request);
+                            authToken = jsonResp.data.authTicket.token;
+                            input = jsonResp.data.user.id;
+
+                        }
+                        else if (actual == true)
+                        {
+                            authToken = JsonLogin.data.authTicket.token;
+                            input = JsonLogin.data.user.id;
+                        }
                         sha256Hash = ComputeSha256Hash(input);
                         postReq.ClearAllHeaders();
                         addHeaders(postReq, authToken, sha256Hash);
