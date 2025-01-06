@@ -27,7 +27,6 @@ namespace Stalker
         }
         private static void AddAppToStartup()
         {
-            // Get the current application path
             string appPath = Application.ExecutablePath;
 
             // The registry key where startup applications are registered
@@ -86,7 +85,6 @@ namespace Stalker
                     FormClosingEventHandler glucoseFormCloseEvent = (s, args) => this.Close();
                     glucoseForm.FormClosing += glucoseFormCloseEvent;
                     glucoseForm.ShowDialog();
-
                 }
                 else
                 {
@@ -371,9 +369,7 @@ namespace Stalker
             int mWidht = rectForm.Width / 2;
             int mHeight = rectForm.Height / 2;
             var fbColors = GetFormBoundsColors();
-            //Top Left
             DrawPath(rectForm, e.Graphics, fbColors.TopLeftColor);
-            //Top Right
             Rectangle rectTopRight = new Rectangle(mWidht, rectForm.Y, mWidht, mHeight);
             int buttonY = 10; // Vertical position for the buttons
             int buttonX = this.Width - ButtonSize - ButtonPadding; // Horizontal position (right-aligned)
@@ -400,7 +396,6 @@ namespace Stalker
             int buttonY = 10; // Vertical position of the buttons
             int buttonX = this.Width - ButtonSize - ButtonPadding; // Horizontal position (right-aligned)
 
-            // Close button
             if (IsPointInsideButton(e.X, e.Y, buttonX, buttonY))
             {
                 this.Close();
