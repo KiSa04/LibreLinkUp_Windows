@@ -62,7 +62,7 @@ namespace Stalker
 
         private string authToken;
         private string patientId;
-        private string sha256Hash;
+        private string sha;
 
         public StartupForm()
         {
@@ -82,7 +82,7 @@ namespace Stalker
                 if (isSuccess)
                 {
                     // Open the main form directly if login is successful
-                    floating.GlucoseForm glucoseForm = new floating.GlucoseForm(authToken, sha256Hash, patientId);
+                    floating.GlucoseForm glucoseForm = new floating.GlucoseForm(authToken, sha, patientId);
                     FormClosingEventHandler glucoseFormCloseEvent = (s, args) => this.Close();
                     glucoseForm.FormClosing += glucoseFormCloseEvent;
                     glucoseForm.ShowDialog();
@@ -175,9 +175,9 @@ namespace Stalker
                             authToken = JsonLogin.data.authTicket.token;
                             input = JsonLogin.data.user.id;
                         }
-                        sha256Hash = ComputeSha256Hash(input);
+                        sha = input;
                         postReq.ClearAllHeaders();
-                        addHeaders(postReq, authToken, sha256Hash);
+                        addHeaders(postReq, authToken, sha);
                         var connectionsResp = postReq.Get(conUrl);
 
                         if (connectionsResp.StatusCode.ToString() == "OK")
@@ -185,7 +185,7 @@ namespace Stalker
                             dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
                             patientId = jsonCon.data[0].patientId;
                             postReq.ClearAllHeaders();
-                            addHeaders(postReq, authToken, sha256Hash);
+                            addHeaders(postReq, authToken, sha);
                             return true;
                         }
                     }
@@ -196,20 +196,6 @@ namespace Stalker
             {
                 MessageBox.Show($"An error occurred: {ex.Message}");
                 return false;
-            }
-        }
-
-        private static string ComputeSha256Hash(string input)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
-                StringBuilder builder = new StringBuilder();
-                foreach (byte b in bytes)
-                {
-                    builder.Append(b.ToString("x2"));
-                }
-                return builder.ToString();
             }
         }
     }
@@ -227,7 +213,7 @@ namespace Stalker
         );
         private string authToken;
         private string patientId;
-        private string sha256Hash;
+        private string sha;
         private System.Timers.Timer glucoseTimer;
         private bool _isDisposed = false;
         private bool _isLoginInProgress = false;
@@ -646,9 +632,9 @@ namespace Stalker
                             authToken = JsonLogin.data.authTicket.token;
                             input = JsonLogin.data.user.id;
                         }
-                        sha256Hash = ComputeSha256Hash(input);
+                        sha = input;
                         postReq.ClearAllHeaders();
-                        addHeaders(postReq, authToken, sha256Hash);
+                        addHeaders(postReq, authToken, sha);
                         var connectionsResp = postReq.Get(conUrl);
 
                         if (connectionsResp.StatusCode.ToString() == "OK")
@@ -656,7 +642,7 @@ namespace Stalker
                             dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
                             patientId = jsonCon.data[0].patientId;
                             postReq.ClearAllHeaders();
-                            addHeaders(postReq, authToken, sha256Hash);
+                            addHeaders(postReq, authToken, sha);
                             return true;
                         }
                     }
@@ -669,20 +655,6 @@ namespace Stalker
                 {
                 }
                 return false;
-            }
-        }
-
-        private static string ComputeSha256Hash(string input)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
-                StringBuilder builder = new StringBuilder();
-                foreach (byte b in bytes)
-                {
-                    builder.Append(b.ToString("x2"));
-                }
-                return builder.ToString();
             }
         }
     }
