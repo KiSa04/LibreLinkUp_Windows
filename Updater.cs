@@ -8,7 +8,7 @@ using Leaf.xNet;
 public class UpdateChecker
 {
     private const string VersionUrl = "https://raw.githubusercontent.com/KiSa04/LibreLinkUp_Windows/refs/heads/main/version.json";
-    private const string CurrentVersion = "1.0.0"; 
+    private const string CurrentVersion = "1.0.1"; 
 
     public void CheckForUpdates()
     {

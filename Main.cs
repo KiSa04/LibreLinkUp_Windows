@@ -61,7 +61,7 @@ namespace Stalker
 
         private string authToken;
         private string patientId;
-        private string sha;
+        private string sha256Hash;
 
         public StartupForm()
         {
@@ -81,7 +81,7 @@ namespace Stalker
                 if (isSuccess)
                 {
                     // Open the main form directly if login is successful
-                    floating.GlucoseForm glucoseForm = new floating.GlucoseForm(authToken, sha, patientId);
+                    floating.GlucoseForm glucoseForm = new floating.GlucoseForm(authToken, sha256Hash, patientId);
                     FormClosingEventHandler glucoseFormCloseEvent = (s, args) => this.Close();
                     glucoseForm.FormClosing += glucoseFormCloseEvent;
                     glucoseForm.ShowDialog();
@@ -165,7 +165,11 @@ namespace Stalker
                         {
                             dynamic jsonResp = JsonConvert.DeserializeObject(requested);
                             authToken = jsonResp.data.authTicket.token;
-                            input = jsonResp.data.user.id;
+                            try {
+                                input = jsonResp.data.user.id;
+                            }
+                            catch
+                            { }
 
                         }
                         else if (actual == true)
@@ -173,9 +177,10 @@ namespace Stalker
                             authToken = JsonLogin.data.authTicket.token;
                             input = JsonLogin.data.user.id;
                         }
-                        sha = input;
+                        if (input!=null)
+                            sha256Hash = ComputeSha256Hash(input);
                         postReq.ClearAllHeaders();
-                        addHeaders(postReq, authToken, sha);
+                        addHeaders(postReq, authToken, sha256Hash);
                         var connectionsResp = postReq.Get(conUrl);
 
                         if (connectionsResp.StatusCode.ToString() == "OK")
@@ -183,7 +188,7 @@ namespace Stalker
                             dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
                             patientId = jsonCon.data[0].patientId;
                             postReq.ClearAllHeaders();
-                            addHeaders(postReq, authToken, sha);
+                            addHeaders(postReq, authToken, sha256Hash);
                             return true;
                         }
                     }
@@ -194,6 +199,20 @@ namespace Stalker
             {
                 MessageBox.Show($"An error occurred: {ex.Message}");
                 return false;
+            }
+        }
+
+        private static string ComputeSha256Hash(string input)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+                StringBuilder builder = new StringBuilder();
+                foreach (byte b in bytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+                return builder.ToString();
             }
         }
     }
@@ -211,7 +230,7 @@ namespace Stalker
         );
         private string authToken;
         private string patientId;
-        private string sha;
+        private string sha256Hash;
         private System.Timers.Timer glucoseTimer;
         private bool _isDisposed = false;
         private bool _isLoginInProgress = false;
@@ -627,9 +646,9 @@ namespace Stalker
                             authToken = JsonLogin.data.authTicket.token;
                             input = JsonLogin.data.user.id;
                         }
-                        sha = input;
+                        sha256Hash = ComputeSha256Hash(input);
                         postReq.ClearAllHeaders();
-                        addHeaders(postReq, authToken, sha);
+                        addHeaders(postReq, authToken, sha256Hash);
                         var connectionsResp = postReq.Get(conUrl);
 
                         if (connectionsResp.StatusCode.ToString() == "OK")
@@ -637,7 +656,7 @@ namespace Stalker
                             dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
                             patientId = jsonCon.data[0].patientId;
                             postReq.ClearAllHeaders();
-                            addHeaders(postReq, authToken, sha);
+                            addHeaders(postReq, authToken, sha256Hash);
                             return true;
                         }
                     }
@@ -650,6 +669,20 @@ namespace Stalker
                 {
                 }
                 return false;
+            }
+        }
+
+        private static string ComputeSha256Hash(string input)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+                StringBuilder builder = new StringBuilder();
+                foreach (byte b in bytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+                return builder.ToString();
             }
         }
     }

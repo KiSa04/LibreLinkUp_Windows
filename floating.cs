@@ -97,6 +97,9 @@ namespace Stalker
                 glucoseLabel.Top = (this.ClientSize.Height - glucoseLabel.Height) / 2;
 
                 _ = GetLatestGlucoseValue();
+
+                UpdateChecker updateChecker = new UpdateChecker();
+                updateChecker.CheckForUpdates();
                 glucoseTimer = new System.Timers.Timer();
                 glucoseTimer.Interval = 60000;
                 glucoseTimer.Elapsed += GlucoseTimer_Elapsed;
@@ -192,27 +195,53 @@ namespace Stalker
                 if (hash != null)
                     httpRequest.AddHeader("Account-Id", hash);
             }
-
+            double max = 0;
+            double min = 999;
+            string con_url = "https://api.libreview.io/llu/connections";
             private async Task GetLatestGlucoseValue()
             {
                 try
                 {
                     Leaf.xNet.HttpRequest postReq = new Leaf.xNet.HttpRequest();
-                    var con_url = "https://api-eu.libreview.io/llu/connections";
+                    
                     postReq.ClearAllHeaders();
                     addHeaders(postReq, authToken, sha256Hash);
 
                     var connectionsResp = postReq.Get($"{con_url}/{patientId}/graph");
+
                     if (connectionsResp.StatusCode.ToString() == "OK")
                     {
                         dynamic JsonGraph = JsonConvert.DeserializeObject(connectionsResp.ToString());
+                        if (JsonGraph.data.region != null)
+                        {
+                            postReq.ClearAllHeaders();
+                            addHeaders(postReq, authToken, sha256Hash);
+                            con_url = $"https://api-{JsonGraph.data.region}.libreview.io/llu/connections";
+                            connectionsResp = postReq.Get($"{con_url}/{patientId}/graph");
+                            JsonGraph = JsonConvert.DeserializeObject(connectionsResp.ToString());
+                        }
+
                         var graphData = JsonGraph.data.graphData;
-                        // Clear previous data points
+
+                       
+                        var connection = JsonGraph.data.connection;
+
+                        double max_alarm = connection.targetHigh;
+                        double min_alarm = connection.targetLow;
+
+                        double baseMaxY = max_alarm;
+                        double newMaxY = Math.Max(baseMaxY, max);
+                        double baseMinY = min_alarm;
+                        double newMinY = Math.Min(baseMinY, min);
+
+
+                        glucoseChart.ChartAreas[0].AxisY.Maximum = newMaxY;
+                        glucoseChart.ChartAreas[0].AxisY.Minimum = newMinY;
+
                         glucoseChart.Series["Glucose"].Points.Clear();
 
-                        string timestampFormat = "MM/dd/yyyy h:mm:ss tt";
+                        string timestampFormat = "M/d/yyyy h:mm:ss tt";
 
-                        // Loop through the graphData and add points to the chart
                         int index = 0;
                         foreach (var dataPoint in graphData)
                         {
@@ -221,12 +250,12 @@ namespace Stalker
                                                         System.Globalization.DateTimeStyles.None,
                                                         out DateTime timestamp))
                             {
-                                double glucoseValue = dataPoint.ValueInMgPerDl;
+                                double glucoseValue = dataPoint.Value;
+                                if (glucoseValue > max) max = glucoseValue;
+                                if (glucoseValue < min) min = glucoseValue;
                                 string measurementColor = dataPoint.MeasurementColor.ToString();
-                                // Create the chart point with the timestamp and glucose value
                                 var chartPoint = glucoseChart.Series["Glucose"].Points.AddXY(timestamp, glucoseValue);
 
-                                // Apply color based on the MeasurementColor
                                 switch (measurementColor)
                                 {
                                     case "1":
@@ -248,7 +277,7 @@ namespace Stalker
                                 index++;
                             }
                         }
-
+                        
                         string lastValue = JsonGraph.data.connection.glucoseMeasurement.Value;
                         int trendArrowValue = JsonGraph.data.connection.glucoseMeasurement.TrendArrow;
                         bool high = JsonGraph.data.connection.glucoseMeasurement.isHigh;
