@@ -243,7 +243,6 @@ namespace Stalker
 
         public LoginForm()
         {
-            // Initialize components
             InitializeComponent();
             this.FormClosing += LoginForm_FormClosing;
             this.Icon = Properties.Resources.icon;
@@ -340,25 +339,21 @@ namespace Stalker
             {
                 Rectangle rectBmp = new Rectangle(0, 0, 1, 1);
 
-                //Top Left
                 rectBmp.X = this.Bounds.X - 1;
                 rectBmp.Y = this.Bounds.Y;
                 graph.CopyFromScreen(rectBmp.Location, Point.Empty, rectBmp.Size);
                 fbColor.TopLeftColor = bmp.GetPixel(0, 0);
 
-                //Top Right
                 rectBmp.X = this.Bounds.Right;
                 rectBmp.Y = this.Bounds.Y;
                 graph.CopyFromScreen(rectBmp.Location, Point.Empty, rectBmp.Size);
                 fbColor.TopRightColor = bmp.GetPixel(0, 0);
 
-                //Bottom Left
                 rectBmp.X = this.Bounds.X;
                 rectBmp.Y = this.Bounds.Bottom;
                 graph.CopyFromScreen(rectBmp.Location, Point.Empty, rectBmp.Size);
                 fbColor.BottomLeftColor = bmp.GetPixel(0, 0);
-
-                //Bottom Right
+                
                 rectBmp.X = this.Bounds.Right;
                 rectBmp.Y = this.Bounds.Bottom;
                 graph.CopyFromScreen(rectBmp.Location, Point.Empty, rectBmp.Size);
@@ -377,7 +372,7 @@ namespace Stalker
             DrawPath(rectForm, e.Graphics, fbColors.TopLeftColor);
             Rectangle rectTopRight = new Rectangle(mWidht, rectForm.Y, mWidht, mHeight);
             int buttonY = 10; // Vertical position for the buttons
-            int buttonX = this.Width - ButtonSize - ButtonPadding; // Horizontal position (right-aligned)
+            int buttonX = this.Width - ButtonSize - ButtonPadding;
 
 
             FormRegionAndBorder(this, borderRadius, e.Graphics, borderColor, borderSize);
@@ -397,7 +392,6 @@ namespace Stalker
         {
             base.OnMouseClick(e);
 
-            // Check if the click is inside any of the buttons
             int buttonY = 10; // Vertical position of the buttons
             int buttonX = this.Width - ButtonSize - ButtonPadding; // Horizontal position (right-aligned)
 
@@ -405,12 +399,10 @@ namespace Stalker
             {
                 this.Close();
             }
-            // Minimize button
             else if (IsPointInsideButton(e.X, e.Y, buttonX - ButtonSize - 5, buttonY))
             {
                 this.WindowState = FormWindowState.Minimized;
             }
-            // Maximize button
             else if (IsPointInsideButton(e.X, e.Y, buttonX - 2 * (ButtonSize + 5), buttonY))
             {
                 this.WindowState = (this.WindowState == FormWindowState.Normal) ? FormWindowState.Maximized : FormWindowState.Normal;
@@ -426,9 +418,6 @@ namespace Stalker
 
         private void InitializeComponent()
         {
-            // PictureBox for the glucometer image
-
-            // PictureBox for the LibreLinkUp icon
             PictureBox libreLinkUpPictureBox = new PictureBox()
             {
                 Top = 50,
@@ -438,7 +427,6 @@ namespace Stalker
                 Image = LoadEmbeddedImage("Stalker.LLU-Logo.png")
             };
 
-            // Labels
             Label emailLabel = new Label()
             {
                 Text = "Email",
@@ -458,7 +446,6 @@ namespace Stalker
                 TextAlign = ContentAlignment.MiddleLeft
             };
 
-            // Input fields
             emailTextBox = new TextBox()
             {
                 Top = 135,
@@ -477,7 +464,6 @@ namespace Stalker
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            // Login button
             loginButton = new Button()
             {
                 Text = "Login",
@@ -494,7 +480,6 @@ namespace Stalker
             loginButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(35, 120, 200);
             loginButton.Click += LoginButton_Click;
 
-            // Form settings
             this.Text = "Login";
             this.ClientSize = new Size(350, 320);
             this.FormBorderStyle = FormBorderStyle.None;
@@ -502,7 +487,6 @@ namespace Stalker
             this.BackColor = Color.White;
             
 
-            // Add controls to form
             //Controls.Add(glucometerPictureBox);
             Controls.Add(libreLinkUpPictureBox);
             //Controls.Add(headerLabel);
@@ -519,7 +503,6 @@ namespace Stalker
         {
             if (disposing && !_isDisposed)
             {
-                // Dispose managed resources here
                 glucoseTimer?.Dispose();
                 _isDisposed = true;
             }
@@ -556,7 +539,6 @@ namespace Stalker
 
             if (isSuccess && !_isFormClosing && !_isDisposed)
             {
-                // Save credentials
                 var credentials = new
                 {
                     email = email,

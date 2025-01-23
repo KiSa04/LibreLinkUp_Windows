@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.ComponentModel.Design;
+using System.Web.ModelBinding;
 
 namespace Stalker
 {
@@ -19,7 +20,7 @@ namespace Stalker
             private string sha256Hash;
             private string patientId;
             private System.Timers.Timer glucoseTimer;
-            private Label glucoseLabel;
+            private Label glucoseLabel, avgLabel /*tirLabel*/;
             private bool isDragging = false;
             private Point mouseOffset;
             private Chart glucoseChart;
@@ -54,16 +55,42 @@ namespace Stalker
                     TextAlign = ContentAlignment.MiddleCenter,
                     ImageAlign = ContentAlignment.MiddleCenter,
                     AutoSize = true,
-                    Font = new System.Drawing.Font("Arial", 14),
+                    Font = new System.Drawing.Font("Arial", 14)
                 };
+
+                avgLabel = new Label()
+                {
+                    Text = "",
+                    ForeColor = System.Drawing.Color.White,
+                    BackColor = System.Drawing.Color.Black,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    ImageAlign = ContentAlignment.MiddleCenter,
+                    AutoSize = true,
+                    Font = new System.Drawing.Font("Arial", 14),
+                    Visible = false
+                };
+
+                /*tirLabel = new Label()
+                {
+                    Text = "",
+                    ForeColor = System.Drawing.Color.White,
+                    BackColor = System.Drawing.Color.Black,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    ImageAlign = ContentAlignment.MiddleCenter,
+                    AutoSize = true,
+                    Font = new System.Drawing.Font("Arial", 14),
+                    Visible = false
+                };*/
 
                 glucoseChart = new Chart()
                 {
                     Location = new Point(0, 50),
                     Size = new Size(350, 200) 
                 };
+
                 ChartArea chartArea = new ChartArea();
                 glucoseChart.ChartAreas.Add(chartArea);
+
                 Series series = new Series
                 {
                     Name = "Glucose",
@@ -71,11 +98,14 @@ namespace Stalker
                     BorderWidth = 2,
                     IsVisibleInLegend = false
                 };
+
                 glucoseChart.Series.Add(series);
                 glucoseChart.Visible = false;
 
                 Controls.Add(glucoseChart);
                 Controls.Add(glucoseLabel);
+                Controls.Add(avgLabel);
+                //Controls.Add(tirLabel);
 
                 this.FormBorderStyle = FormBorderStyle.None;
                 this.TopMost = true;
@@ -93,8 +123,14 @@ namespace Stalker
                 this.MouseHover += GlucoseForm_MouseHover;
                 this.MouseLeave += GlucoseForm_MouseLeave;
 
-                glucoseLabel.Left = 20;
+                glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
                 glucoseLabel.Top = (this.ClientSize.Height - glucoseLabel.Height) / 2;
+
+                avgLabel.Left = ((this.ClientSize.Width + glucoseLabel.Width) - avgLabel.Width) / 2;
+                avgLabel.Top = (this.ClientSize.Height - avgLabel.Height) / 2;
+
+                //tirLabel.Left = (this.ClientSize.Width - tirLabel.Width) / 2;
+                //tirLabel.Top = (this.ClientSize.Height - tirLabel.Height) / 2;
 
                 _ = GetLatestGlucoseValue();
 
@@ -125,7 +161,8 @@ namespace Stalker
             private void GlucoseForm_MouseLeave(object sender, EventArgs e)
             {
                 glucoseChart.Visible = false;
-                glucoseLabel.Left = 20;
+                avgLabel.Visible = false;
+                glucoseLabel.Text = nVal;
                 this.Width = 150;
                 this.Height = 50;
             }
@@ -133,20 +170,21 @@ namespace Stalker
             private void GlucoseForm_MouseHover(object sender, EventArgs e)
             {
                 glucoseChart.Visible = true;
+                avgLabel.Visible = true;
+                nVal = glucoseLabel.Text;
+                glucoseLabel.Text = exVal;
                 this.Width = 350;
                 this.Height = 250;
             }
 
             private void GlucoseTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
             {
-                // Ensure that GetLatestGlucoseValue is executed on the UI thread
                 if (this.InvokeRequired)
                 {
                     this.Invoke(new Action(async () => await GetLatestGlucoseValue()));
                 }
                 else
                 {
-                    // If we are already on the UI thread, just call the method
                     _ = GetLatestGlucoseValue();
                 }
             }
@@ -159,8 +197,6 @@ namespace Stalker
                     mouseOffset = new Point(e.X, e.Y);
                 }
             }
-
-            // Event handler for MouseMove
             private void GlucoseForm_MouseMove(object sender, MouseEventArgs e)
             {
                 if (isDragging)
@@ -169,12 +205,12 @@ namespace Stalker
                     this.Top = e.Y + this.Top - mouseOffset.Y;
                 }
             }
-
-            // Event handler for MouseUp
             private void GlucoseForm_MouseUp(object sender, MouseEventArgs e)
             {
                 isDragging = false;
             }
+
+            private string exVal, nVal;
             void addHeaders(Leaf.xNet.HttpRequest httpRequest, string auth, string hash)
             {
                 httpRequest.AddHeader("accept-encoding", "gzip");
@@ -243,6 +279,11 @@ namespace Stalker
                         string timestampFormat = "M/d/yyyy h:mm:ss tt";
 
                         int index = 0;
+                        double glucodata = 0;
+                        int offRange = 0;
+                        double maxMin = connection.targetHigh;
+                        double minMax = connection.targetLow;
+
                         foreach (var dataPoint in graphData)
                         {
                             if (DateTime.TryParseExact(dataPoint.Timestamp.ToString(), timestampFormat,
@@ -253,6 +294,9 @@ namespace Stalker
                                 double glucoseValue = dataPoint.Value;
                                 if (glucoseValue > max) max = glucoseValue;
                                 if (glucoseValue < min) min = glucoseValue;
+
+                                if (glucoseValue > maxMin || glucoseValue < minMax) offRange++;
+
                                 string measurementColor = dataPoint.MeasurementColor.ToString();
                                 var chartPoint = glucoseChart.Series["Glucose"].Points.AddXY(timestamp, glucoseValue);
 
@@ -271,19 +315,40 @@ namespace Stalker
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Red;
                                         break;
                                     default:
-                                        glucoseChart.Series["Glucose"].Points[index].Color = Color.Gray; // Default color in case of unexpected value
+                                        glucoseChart.Series["Glucose"].Points[index].Color = Color.Gray;
                                         break;
                                 }
+                                glucodata += glucoseValue;
                                 index++;
                             }
                         }
-                        
+
+                        double avg = glucodata / index;
+                        double TIR = 100 - (offRange / index * 100);
+
+                        glucoseChart.ChartAreas["ChartArea1"].AxisX.IsMarginVisible = true;
+
+                        StripLine stripLine = new StripLine();
+
+                        stripLine.Interval = 0;
+                        stripLine.IntervalOffset = avg;
+                        stripLine.StripWidth = 2;
+                        stripLine.BackColor = Color.Blue;
+                        stripLine.TextAlignment = StringAlignment.Far;
+                        stripLine.TextLineAlignment = StringAlignment.Center;
+
+                        glucoseChart.ChartAreas["ChartArea1"].AxisY.StripLines.Add(stripLine);
+
                         string lastValue = JsonGraph.data.connection.glucoseMeasurement.Value;
                         int trendArrowValue = JsonGraph.data.connection.glucoseMeasurement.TrendArrow;
                         bool high = JsonGraph.data.connection.glucoseMeasurement.isHigh;
                         bool low = JsonGraph.data.connection.glucoseMeasurement.isLow;
                         int MeasurementColor = JsonGraph.data.connection.glucoseMeasurement.MeasurementColor;
-                        
+                        string unitType = JsonGraph.data.connection.glucoseMeasurement.GlucoseUnits;
+
+                        unitType = unitType == "1" ? "mg/dl" : "mmol/l";
+
+
                         string trendArrow = null;
                         switch (trendArrowValue)
                         {
@@ -305,7 +370,10 @@ namespace Stalker
                             default:
                                 break;
                         };
-                        glucoseLabel.Text = $"{lastValue} mg/dL {trendArrow}";
+
+                        glucoseLabel.Text = $"{lastValue} {unitType} {trendArrow}";
+                        avgLabel.Text = $"Average: {avg.ToString("0.")} {unitType}";
+                        exVal = $"TIR: {TIR.ToString("0.")}%";
 
                         switch (MeasurementColor)
                         {
@@ -322,10 +390,13 @@ namespace Stalker
                                 glucoseLabel.ForeColor = Color.Red;
                                 break;
                         }
+
+                        glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
+                        //tirLabel.Left = (this.ClientSize.Width - tirLabel.Width) / 2;
+
                         glucoseChart.Series["Glucose"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
 
-                        // Set the X-axis to show only the hours
-                        glucoseChart.ChartAreas[0].AxisX.LabelStyle.Format = "HH:mm";  // Shows hours and minutes
+                        glucoseChart.ChartAreas[0].AxisX.LabelStyle.Format = "HH:mm"; 
                         glucoseChart.ChartAreas[0].AxisX.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Hours;
                         glucoseChart.ChartAreas[0].AxisX.Interval = 1;
 
