@@ -265,16 +265,9 @@ namespace Stalker
                         double max_alarm = connection.targetHigh;
                         double min_alarm = connection.targetLow;
 
-                        double baseMaxY = max_alarm;
-                        double newMaxY = Math.Max(baseMaxY, max);
-                        double baseMinY = min_alarm;
-                        double newMinY = Math.Min(baseMinY, min);
-
-
-                        glucoseChart.ChartAreas[0].AxisY.Maximum = newMaxY;
-                        glucoseChart.ChartAreas[0].AxisY.Minimum = newMinY;
-
                         glucoseChart.Series["Glucose"].Points.Clear();
+
+                        glucoseChart.ChartAreas[0].AxisY.StripLines.Clear();
 
                         string timestampFormat = "M/d/yyyy h:mm:ss tt";
 
@@ -323,8 +316,17 @@ namespace Stalker
                             }
                         }
 
+                        double baseMaxY = max_alarm;
+                        double newMaxY = Math.Max(baseMaxY, max);
+                        double baseMinY = min_alarm;
+                        double newMinY = Math.Min(baseMinY, min);
+
+
+                        glucoseChart.ChartAreas[0].AxisY.Maximum = newMaxY;
+                        glucoseChart.ChartAreas[0].AxisY.Minimum = newMinY;
+
                         double avg = glucodata / index;
-                        double TIR = 100 - (offRange / index * 100);
+                        double TIR = 100 - ((offRange*100) / index);
 
                         glucoseChart.ChartAreas["ChartArea1"].AxisX.IsMarginVisible = true;
 
@@ -391,7 +393,8 @@ namespace Stalker
                                 break;
                         }
 
-                        glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
+                        if (avgLabel.Visible == false)
+                            glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
                         //tirLabel.Left = (this.ClientSize.Width - tirLabel.Width) / 2;
 
                         glucoseChart.Series["Glucose"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
