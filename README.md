@@ -13,9 +13,12 @@ Elegant display, that can be moved to wherever it's more convenient
 
 Allows you to check the daily graph to see how well your time in range has been doing
 
+Also displays the average blood glucose for the available time 
+
 Green means it's between your low and high ranges! just like in libre view app
 
-![imagem](https://github.com/user-attachments/assets/8db43505-15c7-48e1-95ed-8526cb299454)
+![imagem](https://github.com/user-attachments/assets/5dbfe615-c32b-4beb-9c7c-697d63819c13)
+
 
 
 
