@@ -114,28 +114,7 @@ namespace Stalker
                 var loginUrl = "https://api.libreview.io/llu/auth/login";
                 var conUrl = "https://api.libreview.io/llu/connections";
 
-                void addHeaders(Leaf.xNet.HttpRequest httpRequest, string auth, string hash)
-                {
-                    httpRequest.AddHeader("accept-encoding", "gzip");
-                    httpRequest.AddHeader("Pragma", "no-cache");
-                    httpRequest.AddHeader("connection", "Keep-Alive");
-                    httpRequest.AddHeader("Sec-Fetch-Mode", "cors");
-                    httpRequest.AddHeader("Sec-Fetch-Site", "cross-site");
-                    httpRequest.AddHeader("sec-ch-ua-mobile", "?0");
-                    httpRequest.AddHeader("Content-type", "application/json");
-                    httpRequest.UserAgent = "HTTP Debugger/9.0.0.12";
-
-                    httpRequest.AddHeader("product", "llu.android");
-                    httpRequest.AddHeader("version", "4.12.0");
-                    httpRequest.AddHeader("Cache-Control", "no-cache");
-                    httpRequest.AddHeader("Accept-Encoding", "gzip");
-                    if (auth != null)
-                        httpRequest.AddHeader("Authorization", $"Bearer {auth}");
-                    if (hash != null)
-                        httpRequest.AddHeader("Account-Id", hash);
-                }
-
-                addHeaders(postReq, null, null);
+                Utils.addHeaders(postReq, null, null);
                 var requestBody = new { email = email, password = password };
                 var json = JsonConvert.SerializeObject(requestBody);
                 var request = postReq.Post(loginUrl, json, "application/json");
@@ -152,7 +131,7 @@ namespace Stalker
                         loginUrl = $"https://api{region}.libreview.io/llu/auth/login";
                         conUrl = $"https://api{region}.libreview.io/llu/connections";
                         postReq.ClearAllHeaders();
-                        addHeaders(postReq, null, null);
+                        Utils.addHeaders(postReq, null, null);
                         requested = postReq.Post(loginUrl, json, "application/json").ToString();
                     }
                     else
@@ -180,7 +159,7 @@ namespace Stalker
                         if (input!=null)
                             sha256Hash = ComputeSha256Hash(input);
                         postReq.ClearAllHeaders();
-                        addHeaders(postReq, authToken, sha256Hash);
+                        Utils.addHeaders(postReq, authToken, sha256Hash);
                         var connectionsResp = postReq.Get(conUrl);
 
                         if (connectionsResp.StatusCode.ToString() == "OK")
@@ -188,7 +167,7 @@ namespace Stalker
                             dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
                             patientId = jsonCon.data[0].patientId;
                             postReq.ClearAllHeaders();
-                            addHeaders(postReq, authToken, sha256Hash);
+                            Utils.addHeaders(postReq, authToken, sha256Hash);
                             return true;
                         }
                     }
@@ -571,28 +550,8 @@ namespace Stalker
                 var loginUrl = $"https://api.libreview.io/llu/auth/login";
                 var conUrl = $"https://api.libreview.io/llu/connections";
 
-                void addHeaders(Leaf.xNet.HttpRequest httpRequest, string auth, string hash)
-                {
-                    httpRequest.AddHeader("accept-encoding", "gzip");
-                    httpRequest.AddHeader("Pragma", "no-cache");
-                    httpRequest.AddHeader("connection", "Keep-Alive");
-                    httpRequest.AddHeader("Sec-Fetch-Mode", "cors");
-                    httpRequest.AddHeader("Sec-Fetch-Site", "cross-site");
-                    httpRequest.AddHeader("sec-ch-ua-mobile", "?0");
-                    httpRequest.AddHeader("Content-type", "application/json");
-                    httpRequest.UserAgent = "HTTP Debugger/9.0.0.12";
-
-                    httpRequest.AddHeader("product", "llu.android");
-                    httpRequest.AddHeader("version", "4.12.0");
-                    httpRequest.AddHeader("Cache-Control", "no-cache");
-                    httpRequest.AddHeader("Accept-Encoding", "gzip");
-                    if (auth != null)
-                        httpRequest.AddHeader("Authorization", $"Bearer {auth}");
-                    if (hash != null)
-                        httpRequest.AddHeader("Account-Id", hash);
-                }
-
-                addHeaders(postReq, null, null);
+               
+                Utils.addHeaders(postReq, null, null);
                 var requestBody = new { email = email, password = password };
                 var json = JsonConvert.SerializeObject(requestBody);
                 var loginResp = postReq.Post(loginUrl, json, "application/json");
@@ -607,7 +566,7 @@ namespace Stalker
                         loginUrl = $"https://api{region}.libreview.io/llu/auth/login";
                         conUrl = $"https://api{region}.libreview.io/llu/connections";
                         postReq.ClearAllHeaders();
-                        addHeaders(postReq, null, null);
+                        Utils.addHeaders(postReq, null, null);
                         request = postReq.Post(loginUrl, json, "application/json").ToString();
                     }
                     else
@@ -630,7 +589,7 @@ namespace Stalker
                         }
                         sha256Hash = ComputeSha256Hash(input);
                         postReq.ClearAllHeaders();
-                        addHeaders(postReq, authToken, sha256Hash);
+                        Utils.addHeaders(postReq, authToken, sha256Hash);
                         var connectionsResp = postReq.Get(conUrl);
 
                         if (connectionsResp.StatusCode.ToString() == "OK")
@@ -638,7 +597,7 @@ namespace Stalker
                             dynamic jsonCon = JsonConvert.DeserializeObject(connectionsResp.ToString());
                             patientId = jsonCon.data[0].patientId;
                             postReq.ClearAllHeaders();
-                            addHeaders(postReq, authToken, sha256Hash);
+                            Utils.addHeaders(postReq, authToken, sha256Hash);
                             return true;
                         }
                     }

@@ -7,12 +7,10 @@ using Newtonsoft.Json;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Windows.Forms.DataVisualization.Charting;
-using System.ComponentModel.Design;
-using System.Web.ModelBinding;
 
 namespace Stalker
 {
-    internal class floating
+    public class floating
     {
         public class GlucoseForm : Form
         {
@@ -20,8 +18,8 @@ namespace Stalker
             private string sha256Hash;
             private string patientId;
             private System.Timers.Timer glucoseTimer;
-            private Label glucoseLabel, avgLabel /*tirLabel*/;
-            private bool isDragging = false;
+            private Label glucoseLabel, avgLabel;
+            private bool isDragging, isHover = false;
             private Point mouseOffset;
             private Chart glucoseChart;
             private NotifyIcon trayIcon;
@@ -70,18 +68,6 @@ namespace Stalker
                     Visible = false
                 };
 
-                /*tirLabel = new Label()
-                {
-                    Text = "",
-                    ForeColor = System.Drawing.Color.White,
-                    BackColor = System.Drawing.Color.Black,
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    ImageAlign = ContentAlignment.MiddleCenter,
-                    AutoSize = true,
-                    Font = new System.Drawing.Font("Arial", 14),
-                    Visible = false
-                };*/
-
                 glucoseChart = new Chart()
                 {
                     Location = new Point(0, 50),
@@ -123,6 +109,8 @@ namespace Stalker
                 this.MouseHover += GlucoseForm_MouseHover;
                 this.MouseLeave += GlucoseForm_MouseLeave;
 
+                glucoseChart.MouseLeave += GlucoseForm_MouseLeave;
+
                 glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
                 glucoseLabel.Top = (this.ClientSize.Height - glucoseLabel.Height) / 2;
 
@@ -160,11 +148,17 @@ namespace Stalker
             }
             private void GlucoseForm_MouseLeave(object sender, EventArgs e)
             {
-                glucoseChart.Visible = false;
-                avgLabel.Visible = false;
-                glucoseLabel.Text = nVal;
-                this.Width = 150;
-                this.Height = 50;
+                if (!glucoseLabel.ClientRectangle.Contains(glucoseLabel.PointToClient(System.Windows.Forms.Cursor.Position)) &&
+                    !avgLabel.ClientRectangle.Contains(avgLabel.PointToClient(System.Windows.Forms.Cursor.Position)) &&
+                    !glucoseChart.ClientRectangle.Contains(glucoseChart.PointToClient(System.Windows.Forms.Cursor.Position)) &&
+                    !this.ClientRectangle.Contains(this.PointToClient(System.Windows.Forms.Cursor.Position)))
+                {
+                    glucoseChart.Visible = false;
+                    avgLabel.Visible = false;
+                    glucoseLabel.Text = nVal;
+                    this.Width = 150;
+                    this.Height = 50;
+                }
             }
 
             private void GlucoseForm_MouseHover(object sender, EventArgs e)
@@ -199,6 +193,7 @@ namespace Stalker
             }
             private void GlucoseForm_MouseMove(object sender, MouseEventArgs e)
             {
+
                 if (isDragging)
                 {
                     this.Left = e.X + this.Left - mouseOffset.X;
@@ -211,26 +206,7 @@ namespace Stalker
             }
 
             private string exVal, nVal;
-            void addHeaders(Leaf.xNet.HttpRequest httpRequest, string auth, string hash)
-            {
-                httpRequest.AddHeader("accept-encoding", "gzip");
-                httpRequest.AddHeader("Pragma", "no-cache");
-                httpRequest.AddHeader("connection", "Keep-Alive");
-                httpRequest.AddHeader("Sec-Fetch-Mode", "cors");
-                httpRequest.AddHeader("Sec-Fetch-Site", "cross-site");
-                httpRequest.AddHeader("sec-ch-ua-mobile", "?0");
-                httpRequest.AddHeader("Content-type", "application/json");
-                httpRequest.UserAgent = "HTTP Debugger/9.0.0.12";
-
-                httpRequest.AddHeader("product", "llu.android");
-                httpRequest.AddHeader("version", "4.12.0");
-                httpRequest.AddHeader("Cache-Control", "no-cache");
-                httpRequest.AddHeader("Accept-Encoding", "gzip");
-                if (auth != null)
-                    httpRequest.AddHeader("Authorization", $"Bearer {auth}");
-                if (hash != null)
-                    httpRequest.AddHeader("Account-Id", hash);
-            }
+            
             double max = 0;
             double min = 999;
             string con_url = "https://api.libreview.io/llu/connections";
@@ -241,7 +217,7 @@ namespace Stalker
                     Leaf.xNet.HttpRequest postReq = new Leaf.xNet.HttpRequest();
                     
                     postReq.ClearAllHeaders();
-                    addHeaders(postReq, authToken, sha256Hash);
+                    Utils.addHeaders(postReq, authToken, sha256Hash);
 
                     var connectionsResp = postReq.Get($"{con_url}/{patientId}/graph");
 
@@ -251,7 +227,7 @@ namespace Stalker
                         if (JsonGraph.data.region != null)
                         {
                             postReq.ClearAllHeaders();
-                            addHeaders(postReq, authToken, sha256Hash);
+                            Utils.addHeaders(postReq, authToken, sha256Hash);
                             con_url = $"https://api-{JsonGraph.data.region}.libreview.io/llu/connections";
                             connectionsResp = postReq.Get($"{con_url}/{patientId}/graph");
                             JsonGraph = JsonConvert.DeserializeObject(connectionsResp.ToString());
@@ -277,6 +253,22 @@ namespace Stalker
                         double maxMin = connection.targetHigh;
                         double minMax = connection.targetLow;
 
+                        double baseMaxY = max_alarm;
+                        double newMaxY = Math.Max(baseMaxY, max);
+                        double baseMinY = min_alarm;
+                        double newMinY = Math.Min(baseMinY, min);
+
+                        string lastValue = JsonGraph.data.connection.glucoseMeasurement.Value;
+                        int trendArrowValue = JsonGraph.data.connection.glucoseMeasurement.TrendArrow;
+                        bool high = JsonGraph.data.connection.glucoseMeasurement.isHigh;
+                        bool low = JsonGraph.data.connection.glucoseMeasurement.isLow;
+                        int MeasurementColor = JsonGraph.data.connection.glucoseMeasurement.MeasurementColor;
+                        string unitType = JsonGraph.data.connection.glucoseMeasurement.GlucoseUnits;
+
+                        unitType = unitType == "1" ? "mg/dl" : "mmol/l";
+
+                        string trendArrow = null;
+
                         foreach (var dataPoint in graphData)
                         {
                             if (DateTime.TryParseExact(dataPoint.Timestamp.ToString(), timestampFormat,
@@ -297,18 +289,23 @@ namespace Stalker
                                 {
                                     case "1":
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Green;
+                                        glucoseLabel.ForeColor = Color.White;
                                         break;
                                     case "2":
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Yellow;
+                                        glucoseLabel.ForeColor = Color.Yellow;
                                         break;
                                     case "3":
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Orange;
+                                        glucoseLabel.ForeColor = Color.Orange;
                                         break;
                                     case "4":
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Red;
+                                        glucoseLabel.ForeColor = Color.Red;
                                         break;
                                     default:
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Gray;
+                                        glucoseLabel.ForeColor = Color.White;
                                         break;
                                 }
                                 glucodata += glucoseValue;
@@ -316,11 +313,46 @@ namespace Stalker
                             }
                         }
 
-                        double baseMaxY = max_alarm;
-                        double newMaxY = Math.Max(baseMaxY, max);
-                        double baseMinY = min_alarm;
-                        double newMinY = Math.Min(baseMinY, min);
-
+                        switch (trendArrowValue)
+                        {
+                            case 1:
+                                trendArrow = "⬇️";
+                                if (Convert.ToInt32(lastValue) <= minMax + 50)
+                                {
+                                    glucoseLabel.ForeColor = Color.Red;
+                                    lastValue.Insert(0, "⚠️");
+                                }
+                                break;
+                            case 2:
+                                trendArrow = "↘️";
+                                if (Convert.ToInt32(lastValue) <= minMax + 25)
+                                {
+                                    glucoseLabel.ForeColor = Color.Red;
+                                    lastValue.Insert(0, "⚠️");
+                                }
+                                break;
+                            case 3:
+                                trendArrow = "➡️";
+                                break;
+                            case 4:
+                                trendArrow = "↗️";
+                                if (Convert.ToInt32(lastValue) >= maxMin - 25)
+                                {
+                                    glucoseLabel.ForeColor = Color.Yellow;
+                                    lastValue.Insert(0, "⚠️");
+                                }
+                                break;
+                            case 5:
+                                trendArrow = "⬆️";
+                                if (Convert.ToInt32(lastValue) >= maxMin - 50)
+                                {
+                                    glucoseLabel.ForeColor = Color.Yellow;
+                                    lastValue.Insert(0, "⚠️");
+                                }
+                                break;
+                            default:
+                                break;
+                        };
 
                         glucoseChart.ChartAreas[0].AxisY.Maximum = newMaxY;
                         glucoseChart.ChartAreas[0].AxisY.Minimum = newMinY;
@@ -341,57 +373,9 @@ namespace Stalker
 
                         glucoseChart.ChartAreas["ChartArea1"].AxisY.StripLines.Add(stripLine);
 
-                        string lastValue = JsonGraph.data.connection.glucoseMeasurement.Value;
-                        int trendArrowValue = JsonGraph.data.connection.glucoseMeasurement.TrendArrow;
-                        bool high = JsonGraph.data.connection.glucoseMeasurement.isHigh;
-                        bool low = JsonGraph.data.connection.glucoseMeasurement.isLow;
-                        int MeasurementColor = JsonGraph.data.connection.glucoseMeasurement.MeasurementColor;
-                        string unitType = JsonGraph.data.connection.glucoseMeasurement.GlucoseUnits;
-
-                        unitType = unitType == "1" ? "mg/dl" : "mmol/l";
-
-
-                        string trendArrow = null;
-                        switch (trendArrowValue)
-                        {
-                            case 1:
-                                trendArrow = "⬇️";
-                                break;
-                            case 2:
-                                trendArrow = "↘️";
-                                break;
-                            case 3: 
-                                trendArrow = "➡️";
-                                break;
-                            case 4:  
-                                trendArrow = "↗️";
-                                break;
-                            case 5: 
-                                trendArrow = "⬆️";
-                                break;
-                            default:
-                                break;
-                        };
-
                         glucoseLabel.Text = $"{lastValue} {unitType} {trendArrow}";
                         avgLabel.Text = $"Average: {avg.ToString("0.")} {unitType}";
                         exVal = $"TIR: {TIR.ToString("0.")}%";
-
-                        switch (MeasurementColor)
-                        {
-                            case 1:
-                                glucoseLabel.ForeColor = Color.White;
-                                break;
-                            case 2:
-                                glucoseLabel.ForeColor = Color.Yellow;
-                                break;
-                            case 3:
-                                glucoseLabel.ForeColor = Color.Orange;
-                                break;
-                            case 4:
-                                glucoseLabel.ForeColor = Color.Red;
-                                break;
-                        }
 
                         if (avgLabel.Visible == false)
                             glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
