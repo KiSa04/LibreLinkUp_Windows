@@ -21,7 +21,7 @@ namespace Stalker
             httpRequest.UserAgent = "HTTP Debugger/9.0.0.12";
 
             httpRequest.AddHeader("product", "llu.android");
-            httpRequest.AddHeader("version", "4.12.0");
+            httpRequest.AddHeader("version", "4.16.0");
             httpRequest.AddHeader("Cache-Control", "no-cache");
             httpRequest.AddHeader("Accept-Encoding", "gzip");
             if (auth != null)
