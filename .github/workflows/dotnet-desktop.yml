@@ -1,0 +1,70 @@
+name: .NET Core WinForms
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    runs-on: windows-latest
+
+    env:
+      Solution_Name: Stalker.sln  
+      Project_Path: Stalker.csproj  
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    # Clean the solution to ensure there are no stale build artifacts
+    - name: Clean the application
+      run: dotnet clean $env:Solution_Name
+
+    # Restore dependencies
+    - name: Restore the application
+      run: dotnet restore $env:Solution_Name
+
+    # Force MSBuild to use x64
+    - name: Set MSBuild path to x64
+      run: |
+        set MSBUILD_PATH="C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe"
+
+    # Build the application
+    - name: Build the application
+      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }}
+
+    # Publish the application to a folder
+    - name: Publish the application
+      run: dotnet msbuild D:\a\LibreLinkUp_Windows\LibreLinkUp_Windows\Stalker.sln /p:PublishDir=./published
+
+    # List the files in the published folder (for debugging)
+    - name: List files in published folder
+      run: |
+        dir ./bin/Release/
+
+    # Create a ZIP file of the build
+    - name: Create ZIP of the build
+      run: |
+        Compress-Archive -Path ./bin/Release/* -DestinationPath LibreLinkUp_Portable.zip
+    
+    # Upload the ZIP file to GitHub Release
+    - name: Upload ZIP to GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ secrets.VERSION }}
+        files: LibreLinkUp_Portable.zip  # Path to the ZIP file
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
