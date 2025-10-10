@@ -1,22 +1,25 @@
-name: .NET Core WinForms
+name: .NET Core WinForms Build & Release
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  # Optional: run on tags for releases
+  push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
+    runs-on: windows-latest
     strategy:
       matrix:
         configuration: [Release]
 
-    runs-on: windows-latest
-
     env:
-      Solution_Name: Stalker.sln  
-      Project_Path: Stalker.csproj  
+      Solution_Name: LibreLinkUp_Windows.sln
+      Project_Path: LibreLinkUp_Windows.csproj
 
     steps:
     - name: Checkout code
@@ -24,48 +27,39 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install .NET SDK
+    - name: Setup .NET SDK
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    # Clean the solution to ensure there are no stale build artifacts
-    - name: Clean the application
+    # Clean and restore
+    - name: Clean solution
       run: dotnet clean $env:Solution_Name
 
-    # Restore dependencies
-    - name: Restore the application
+    - name: Restore dependencies
       run: dotnet restore $env:Solution_Name
 
-    # Force MSBuild to use x64
-    - name: Set MSBuild path to x64
-      run: |
-        set MSBUILD_PATH="C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe"
+    # Build
+    - name: Build solution
+      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }} --no-restore
 
-    # Build the application
-    - name: Build the application
-      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }}
+    # Publish
+    - name: Publish application
+      run: dotnet publish $env:Project_Path --configuration ${{ matrix.configuration }} --output ./publish
 
-    # Publish the application to a folder
-    - name: Publish the application
-      run: dotnet msbuild D:\a\LibreLinkUp_Windows\LibreLinkUp_Windows\Stalker.sln /p:PublishDir=./published
+    # Verify output
+    - name: List published files
+      run: dir ./publish
 
-    # List the files in the published folder (for debugging)
-    - name: List files in published folder
-      run: |
-        dir ./bin/Release/
+    # Package artifacts
+    - name: Create ZIP of build
+      run: Compress-Archive -Path ./publish/* -DestinationPath LibreLinkUp_Portable.zip
 
-    # Create a ZIP file of the build
-    - name: Create ZIP of the build
-      run: |
-        Compress-Archive -Path ./bin/Release/* -DestinationPath LibreLinkUp_Portable.zip
-    
-    # Upload the ZIP file to GitHub Release
+    # Upload to GitHub Release (optional)
     - name: Upload ZIP to GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ secrets.VERSION }}
-        files: LibreLinkUp_Portable.zip  # Path to the ZIP file
+        files: LibreLinkUp_Portable.zip
       env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        Solution_Name: LibreLinkUp_Windows.sln
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
