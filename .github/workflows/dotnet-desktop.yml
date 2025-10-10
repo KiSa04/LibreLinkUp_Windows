@@ -68,3 +68,4 @@ jobs:
         files: LibreLinkUp_Portable.zip  # Path to the ZIP file
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        Solution_Name: LibreLinkUp_Windows.sln
