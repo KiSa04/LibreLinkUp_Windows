@@ -50,7 +50,10 @@ jobs:
       run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --output ./publish/portable
 
     - name: Create ZIP (Portable)
-      run: Compress-Archive -Path ./publish/portable/* -DestinationPath ${{ env.App_Name }}-Portable.zip
+      run: |
+        mkdir ./publish/portable-folder
+        cp -r ./publish/portable/* ./publish/portable-folder/
+        Compress-Archive -Path ./publish/portable-folder/* -DestinationPath ${{ env.App_Name }}-Portable.zip
 
     # ==========================
     # 2️⃣ Self-contained Installer (EXE)
@@ -59,7 +62,10 @@ jobs:
       run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --runtime win-x64 --self-contained true --output ./publish/selfcontained
 
     - name: Create ZIP (Installer)
-      run: Compress-Archive -Path ./publish/selfcontained/* -DestinationPath ${{ env.App_Name }}-Installer.zip
+      run: |
+        mkdir ./publish/selfcontained-folder
+        cp -r ./publish/selfcontained/* ./publish/selfcontained-folder/
+        Compress-Archive -Path ./publish/selfcontained-folder/* -DestinationPath ${{ env.App_Name }}-Installer.zip
 
     # Verify outputs
     - name: List published files
