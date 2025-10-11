@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     tags:
-      - 'v*.*.*'   # Trigger release builds when tags like v1.0.0 are pushed
+      - 'v*.*.*'
   pull_request:
     branches: [ "main" ]
 
@@ -16,7 +16,6 @@ jobs:
         configuration: [Release]
 
     env:
-      Solution_Name: LibreLinkUp_Windows.sln
       Project_Path: LibreLinkUp_Windows.csproj
       App_Name: LibreLinkUp_Windows
 
@@ -31,34 +30,35 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    # Clean and restore
-    - name: Clean solution
-      run: dotnet clean $env:Solution_Name
+    # Clean project
+    - name: Clean project
+      run: dotnet clean ${{ env.Project_Path }}
 
+    # Restore dependencies
     - name: Restore dependencies
-      run: dotnet restore $env:Solution_Name
+      run: dotnet restore ${{ env.Project_Path }}
 
     # Build project
-    - name: Build solution
-      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }} --no-restore
+    - name: Build project
+      run: dotnet build ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --no-restore
 
     # ==========================
     # 1️⃣ Portable ZIP build
     # ==========================
     - name: Publish portable build
-      run: dotnet publish $env:Project_Path --configuration ${{ matrix.configuration }} --output ./publish/portable
+      run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --output ./publish/portable
 
     - name: Create ZIP (Portable)
-      run: Compress-Archive -Path ./publish/portable/* -DestinationPath $env:App_Name-Portable.zip
+      run: Compress-Archive -Path ./publish/portable/* -DestinationPath ${{ env.App_Name }}-Portable.zip
 
     # ==========================
     # 2️⃣ Self-contained Installer (EXE)
     # ==========================
     - name: Publish self-contained (installer)
-      run: dotnet publish $env:Project_Path --configuration ${{ matrix.configuration }} --runtime win-x64 --self-contained true --output ./publish/selfcontained
+      run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --runtime win-x64 --self-contained true --output ./publish/selfcontained
 
     - name: Create ZIP (Installer)
-      run: Compress-Archive -Path ./publish/selfcontained/* -DestinationPath $env:App_Name-Installer.zip
+      run: Compress-Archive -Path ./publish/selfcontained/* -DestinationPath ${{ env.App_Name }}-Installer.zip
 
     # Verify outputs
     - name: List published files
@@ -74,7 +74,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          LibreLinkUp_Windows-Portable.zip
-          LibreLinkUp_Windows-Installer.zip
+          ${{ env.App_Name }}-Portable.zip
+          ${{ env.App_Name }}-Installer.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
