@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Drawing.Drawing2D;
 using Microsoft.Win32;
 
-namespace Stalker
+namespace LibreLinkUp_Windows
 {
     public class Program
     {
@@ -403,7 +403,7 @@ namespace Stalker
                 Left = 50,
                 Width = 250,
                 SizeMode = PictureBoxSizeMode.StretchImage,
-                Image = LoadEmbeddedImage("Stalker.LLU-Logo.png")
+                Image = LoadEmbeddedImage("LibreLinkUp_Windows.LLU-Logo.png")
             };
 
             Label emailLabel = new Label()

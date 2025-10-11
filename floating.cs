@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Windows.Forms.DataVisualization.Charting;
 
-namespace Stalker
+namespace LibreLinkUp_Windows
 {
     public class floating
     {
@@ -23,7 +23,7 @@ namespace Stalker
             private Point mouseOffset;
             private Chart glucoseChart;
             private NotifyIcon trayIcon;
-            private ContextMenu trayMenu;
+            private ContextMenuStrip trayMenu;
 
             public GlucoseForm(string authToken, string sha256Hash, string patientId)
             {
@@ -31,13 +31,13 @@ namespace Stalker
                 this.sha256Hash = sha256Hash;
                 this.patientId = patientId;
 
-                trayMenu = new ContextMenu();
-                trayMenu.MenuItems.Add("Exit", ExitApp);
+                trayMenu = new ContextMenuStrip();
+                trayMenu.Items.Add("Exit", null, ExitApp);
 
                 trayIcon = new NotifyIcon()
                 {
                     Icon = Properties.Resources.icon, 
-                    ContextMenu = trayMenu,
+                    ContextMenuStrip = trayMenu,
                     Visible = true
                 };
 
@@ -122,8 +122,8 @@ namespace Stalker
 
                 _ = GetLatestGlucoseValue();
 
-                UpdateChecker updateChecker = new UpdateChecker();
-                updateChecker.CheckForUpdates();
+                // UpdateChecker updateChecker = new UpdateChecker();
+                // updateChecker.CheckForUpdates();
                 glucoseTimer = new System.Timers.Timer();
                 glucoseTimer.Interval = 60000;
                 glucoseTimer.Elapsed += GlucoseTimer_Elapsed;
@@ -141,11 +141,39 @@ namespace Stalker
                 }
             }
 
-            private void ExitApp(object sender, EventArgs e)
-            {
-                trayIcon.Visible = false;
-                Application.Exit();
-            }
+			private void ExitApp(object sender, EventArgs e)
+			{
+				try
+				{
+					// Properly dispose the tray icon and its menu
+					if (trayIcon != null)
+					{
+						trayIcon.Visible = false;
+
+						if (trayIcon.ContextMenuStrip != null)
+						{
+							trayIcon.ContextMenuStrip.Dispose();
+							trayIcon.ContextMenuStrip = null;
+						}
+
+						trayIcon.Dispose();
+						trayIcon = null;
+					}
+
+					// Exit application cleanly
+					Application.Exit();
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show($"Error while exiting: {ex.Message}", "Exit Error",
+						MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+			private void ExitAppOld(object sender, EventArgs e)
+			{
+				trayIcon.Visible = false;
+				Application.Exit();
+			}
             private void GlucoseForm_MouseLeave(object sender, EventArgs e)
             {
                 if (!glucoseLabel.ClientRectangle.Contains(glucoseLabel.PointToClient(System.Windows.Forms.Cursor.Position)) &&

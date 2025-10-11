@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Leaf.xNet;
 
-namespace Stalker
+namespace LibreLinkUp_Windows
 {
     public class Utils
     {
