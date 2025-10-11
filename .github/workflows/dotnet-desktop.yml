@@ -52,7 +52,7 @@ jobs:
       run: |
         mkdir ./publish/LibreLinkUp_Windows-Portable
         Copy-Item -Path ./publish/portable/* -Destination ./publish/LibreLinkUp_Windows-Portable -Recurse
-        Compress-Archive -Path ./publish/LibreLinkUp_Windows-Portable/* -DestinationPath ${{ env.App_Name }}-Portable.zip
+        Compress-Archive -Path ./publish/LibreLinkUp_Windows-Portable -DestinationPath ${{ env.App_Name }}-Portable.zip
 
     # ==========================
     # 2️⃣ Self-contained ZIP build
@@ -64,7 +64,7 @@ jobs:
       run: |
         mkdir ./publish/LibreLinkUp_Windows-Installer
         Copy-Item -Path ./publish/selfcontained/* -Destination ./publish/LibreLinkUp_Windows-Installer -Recurse
-        Compress-Archive -Path ./publish/LibreLinkUp_Windows-Installer/* -DestinationPath ${{ env.App_Name }}-Installer.zip
+        Compress-Archive -Path ./publish/LibreLinkUp_Windows-Installer -DestinationPath ${{ env.App_Name }}-Installer.zip
 
     # Verify outputs
     - name: List published files
