@@ -2,11 +2,11 @@ name: .NET WinForms Build & Release
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
     tags:
       - 'v*.*.*'   # Trigger release builds when tags like v1.0.0 are pushed
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   build:
