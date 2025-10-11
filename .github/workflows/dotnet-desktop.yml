@@ -1,6 +1,5 @@
 name: .NET WinForms Build & Release
 
-
 on:
   push:
     branches: [ "master" ]
@@ -51,27 +50,27 @@ jobs:
 
     - name: Create ZIP (Portable)
       run: |
-        mkdir ./publish/portable-folder
-        cp -r ./publish/portable/* ./publish/portable-folder/
-        Compress-Archive -Path ./publish/portable-folder/* -DestinationPath ${{ env.App_Name }}-Portable.zip
+        mkdir ./publish/LibreLinkUp_Windows-Portable
+        Copy-Item -Path ./publish/portable/* -Destination ./publish/LibreLinkUp_Windows-Portable -Recurse
+        Compress-Archive -Path ./publish/LibreLinkUp_Windows-Portable/* -DestinationPath ${{ env.App_Name }}-Portable.zip
 
     # ==========================
-    # 2️⃣ Self-contained Installer (EXE)
+    # 2️⃣ Self-contained ZIP build
     # ==========================
     - name: Publish self-contained (installer)
       run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --runtime win-x64 --self-contained true --output ./publish/selfcontained
 
     - name: Create ZIP (Installer)
       run: |
-        mkdir ./publish/selfcontained-folder
-        cp -r ./publish/selfcontained/* ./publish/selfcontained-folder/
-        Compress-Archive -Path ./publish/selfcontained-folder/* -DestinationPath ${{ env.App_Name }}-Installer.zip
+        mkdir ./publish/LibreLinkUp_Windows-Installer
+        Copy-Item -Path ./publish/selfcontained/* -Destination ./publish/LibreLinkUp_Windows-Installer -Recurse
+        Compress-Archive -Path ./publish/LibreLinkUp_Windows-Installer/* -DestinationPath ${{ env.App_Name }}-Installer.zip
 
     # Verify outputs
     - name: List published files
       run: |
-        dir ./publish/portable
-        dir ./publish/selfcontained
+        dir ./publish/LibreLinkUp_Windows-Portable
+        dir ./publish/LibreLinkUp_Windows-Installer
 
     # ==========================
     # Upload to GitHub Release
