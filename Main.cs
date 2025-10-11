@@ -403,7 +403,7 @@ namespace LibreLinkUp_Windows
                 Left = 50,
                 Width = 250,
                 SizeMode = PictureBoxSizeMode.StretchImage,
-                Image = LoadEmbeddedImage("LibreLinkUp_Windows.LLU-Logo.png")
+                Image = Properties.Resources.LLU_Logo//LoadEmbeddedImage("LLU-Logo.png")
             };
 
             Label emailLabel = new Label()
