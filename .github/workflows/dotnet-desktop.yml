@@ -83,5 +83,5 @@ jobs:
           ${{ env.App_Name }}-Minimal.zip
           ${{ env.App_Name }}-Standalone.zip
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
         
