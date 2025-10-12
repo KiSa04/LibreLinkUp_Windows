@@ -1,0 +1,87 @@
+name: .NET WinForms Build & Release
+
+on:
+  push:
+    branches: [ "master" ]
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    env:
+      Project_Path: LibreLinkUp_Windows.csproj
+      App_Name: LibreLinkUp_Windows
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    # Clean project
+    - name: Clean project
+      run: dotnet clean ${{ env.Project_Path }}
+
+    # Restore dependencies
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Project_Path }}
+
+    # Build project
+    - name: Build project
+      run: dotnet build ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --no-restore
+
+    # ==========================
+    # 1️⃣ Portable ZIP build
+    # ==========================
+    - name: Publish portable build
+      run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --output ./publish/portable
+
+    - name: Create ZIP (Minimal)
+      run: |
+        mkdir ./publish/LibreLinkUp_Windows-Minimal
+        Copy-Item -Path ./publish/portable/* -Destination ./publish/LibreLinkUp_Windows-Minimal -Recurse
+        Compress-Archive -Path ./publish/LibreLinkUp_Windows-Minimal -DestinationPath ${{ env.App_Name }}-Minimal.zip
+
+    # ==========================
+    # 2️⃣ Self-contained ZIP build
+    # ==========================
+    - name: Publish self-contained (Standalone)
+      run: dotnet publish ${{ env.Project_Path }} --configuration ${{ matrix.configuration }} --runtime win-x64 --self-contained true --output ./publish/selfcontained
+
+    - name: Create ZIP (Standalone)
+      run: |
+        mkdir ./publish/LibreLinkUp_Windows-Standalone
+        Copy-Item -Path ./publish/selfcontained/* -Destination ./publish/LibreLinkUp_Windows-Standalone -Recurse
+        Compress-Archive -Path ./publish/LibreLinkUp_Windows-Standalone -DestinationPath ${{ env.App_Name }}-Standalone.zip
+
+    # Verify outputs
+    - name: List published files
+      run: |
+        dir ./publish/LibreLinkUp_Windows-Minimal
+        dir ./publish/LibreLinkUp_Windows-Standalone
+
+    # ==========================
+    # Upload to GitHub Release
+    # ==========================
+    - name: Upload build artifacts to release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ${{ env.App_Name }}-Minimal.zip
+          ${{ env.App_Name }}-Standalone.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
