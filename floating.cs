@@ -128,6 +128,8 @@ namespace LibreLinkUp_Windows
                 glucoseTimer.Interval = 60000;
                 glucoseTimer.Elapsed += GlucoseTimer_Elapsed;
                 glucoseTimer.Start();
+
+                this.Deactivate += (s, e) => HandleMouseExit();
             }
             private void TrayIcon_DoubleClick(object sender, EventArgs e)
             {
@@ -176,11 +178,19 @@ namespace LibreLinkUp_Windows
             }
             private void GlucoseForm_MouseLeave(object sender, EventArgs e)
             {
+                HandleMouseExit();
+            }
+
+            private bool isHovering = false;
+            private void HandleMouseExit()
+            {
+                if (!isHovering) return;
+
                 if (!glucoseLabel.ClientRectangle.Contains(glucoseLabel.PointToClient(System.Windows.Forms.Cursor.Position)) &&
-                    !avgLabel.ClientRectangle.Contains(avgLabel.PointToClient(System.Windows.Forms.Cursor.Position)) &&
                     !glucoseChart.ClientRectangle.Contains(glucoseChart.PointToClient(System.Windows.Forms.Cursor.Position)) &&
                     !this.ClientRectangle.Contains(this.PointToClient(System.Windows.Forms.Cursor.Position)))
                 {
+                    isHovering = false;
                     glucoseChart.Visible = false;
                     avgLabel.Visible = false;
                     glucoseLabel.Text = nVal;
@@ -191,9 +201,9 @@ namespace LibreLinkUp_Windows
 
             private void GlucoseForm_MouseHover(object sender, EventArgs e)
             {
+                isHovering = true;
                 glucoseChart.Visible = true;
                 avgLabel.Visible = true;
-                nVal = glucoseLabel.Text;
                 glucoseLabel.Text = exVal;
                 this.Width = 350;
                 this.Height = 250;
@@ -221,7 +231,6 @@ namespace LibreLinkUp_Windows
             }
             private void GlucoseForm_MouseMove(object sender, MouseEventArgs e)
             {
-
                 if (isDragging)
                 {
                     this.Left = e.X + this.Left - mouseOffset.X;
@@ -418,6 +427,7 @@ namespace LibreLinkUp_Windows
                         glucoseLabel.Text = $"{lastValue} {unitType} {trendArrow}";
                         avgLabel.Text = $"Average: {avg.ToString("0.")} {unitType}";
                         exVal = $"TIR: {TIR.ToString("0.")}%";
+                        nVal = glucoseLabel.Text;
 
                         if (avgLabel.Visible == false)
                             glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
