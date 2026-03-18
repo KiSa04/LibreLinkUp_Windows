@@ -36,7 +36,7 @@ namespace LibreLinkUp_Windows
 
                 trayIcon = new NotifyIcon()
                 {
-                    Icon = Properties.Resources.icon, 
+                    Icon = Properties.Resources.icon,
                     ContextMenuStrip = trayMenu,
                     Visible = true
                 };
@@ -71,7 +71,7 @@ namespace LibreLinkUp_Windows
                 glucoseChart = new Chart()
                 {
                     Location = new Point(0, 50),
-                    Size = new Size(350, 200) 
+                    Size = new Size(350, 200)
                 };
 
                 ChartArea chartArea = new ChartArea();
@@ -96,7 +96,7 @@ namespace LibreLinkUp_Windows
                 this.FormBorderStyle = FormBorderStyle.None;
                 this.TopMost = true;
                 this.StartPosition = FormStartPosition.Manual;
-                this.Location = new System.Drawing.Point(10, 10); 
+                this.Location = new System.Drawing.Point(10, 10);
                 this.BackColor = System.Drawing.Color.Black;
                 this.Opacity = 0.8;
                 this.Width = 150;
@@ -141,39 +141,39 @@ namespace LibreLinkUp_Windows
                 }
             }
 
-			private void ExitApp(object sender, EventArgs e)
-			{
-				try
-				{
-					// Properly dispose the tray icon and its menu
-					if (trayIcon != null)
-					{
-						trayIcon.Visible = false;
+            private void ExitApp(object sender, EventArgs e)
+            {
+                try
+                {
+                    // Properly dispose the tray icon and its menu
+                    if (trayIcon != null)
+                    {
+                        trayIcon.Visible = false;
 
-						if (trayIcon.ContextMenuStrip != null)
-						{
-							trayIcon.ContextMenuStrip.Dispose();
-							trayIcon.ContextMenuStrip = null;
-						}
+                        if (trayIcon.ContextMenuStrip != null)
+                        {
+                            trayIcon.ContextMenuStrip.Dispose();
+                            trayIcon.ContextMenuStrip = null;
+                        }
 
-						trayIcon.Dispose();
-						trayIcon = null;
-					}
+                        trayIcon.Dispose();
+                        trayIcon = null;
+                    }
 
-					// Exit application cleanly
-					Application.Exit();
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show($"Error while exiting: {ex.Message}", "Exit Error",
-						MessageBoxButtons.OK, MessageBoxIcon.Error);
-				}
-			}
-			private void ExitAppOld(object sender, EventArgs e)
-			{
-				trayIcon.Visible = false;
-				Application.Exit();
-			}
+                    // Exit application cleanly
+                    Application.Exit();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error while exiting: {ex.Message}", "Exit Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            private void ExitAppOld(object sender, EventArgs e)
+            {
+                trayIcon.Visible = false;
+                Application.Exit();
+            }
             private void GlucoseForm_MouseLeave(object sender, EventArgs e)
             {
                 if (!glucoseLabel.ClientRectangle.Contains(glucoseLabel.PointToClient(System.Windows.Forms.Cursor.Position)) &&
@@ -234,7 +234,7 @@ namespace LibreLinkUp_Windows
             }
 
             private string exVal, nVal;
-            
+
             double max = 0;
             double min = 999;
             string con_url = "https://api.libreview.io/llu/connections";
@@ -243,7 +243,7 @@ namespace LibreLinkUp_Windows
                 try
                 {
                     Leaf.xNet.HttpRequest postReq = new Leaf.xNet.HttpRequest();
-                    
+
                     postReq.ClearAllHeaders();
                     Utils.addHeaders(postReq, authToken, sha256Hash);
 
@@ -263,14 +263,19 @@ namespace LibreLinkUp_Windows
 
                         var graphData = JsonGraph.data.graphData;
 
-                       
+
                         var connection = JsonGraph.data.connection;
 
                         int glucoseUnits = connection.glucoseMeasurement.GlucoseUnits;
 
-                        double max_alarm = connection.targetHigh / 18;
-                        double min_alarm = connection.targetLow / 18;
+                        double localGlucoseConversion = 1;
+                        if (glucoseUnits == 0) // 0 == mmol/l, 1 == mg/dl
+                        {
+                            localGlucoseConversion = 1f / 18f;
+                        }
 
+                        double max_alarm = connection.targetHigh * localGlucoseConversion;
+                        double min_alarm = connection.targetLow * localGlucoseConversion;
 
                         glucoseChart.Series["Glucose"].Points.Clear();
 
@@ -281,8 +286,8 @@ namespace LibreLinkUp_Windows
                         int index = 0;
                         double glucodata = 0;
                         int offRange = 0;
-                        double maxMin = (connection.targetHigh / 18);
-                        double minMax = (connection.targetLow / 18);
+                        double maxMin = connection.targetHigh * localGlucoseConversion;
+                        double minMax = connection.targetLow * localGlucoseConversion;
 
                         double baseMaxY = max_alarm;
                         double newMaxY = Math.Max(baseMaxY, max);
@@ -348,7 +353,7 @@ namespace LibreLinkUp_Windows
                         {
                             case 1:
                                 trendArrow = "⬇️";
-                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 50)/18)
+                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 50) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -356,7 +361,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 2:
                                 trendArrow = "↘️";
-                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 25)/18)
+                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 25) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -367,7 +372,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 4:
                                 trendArrow = "↗️";
-                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 25)/18)
+                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 25) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Yellow;
                                     lastValue.Insert(0, "⚠️");
@@ -375,7 +380,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 5:
                                 trendArrow = "⬆️";
-                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 50)/18)
+                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 50) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Yellow;
                                     lastValue.Insert(0, "⚠️");
@@ -383,13 +388,19 @@ namespace LibreLinkUp_Windows
                                 break;
                             default:
                                 break;
-                        };
+                        }
+                        ;
+
+                        if (unitType == "mmol/l")
+                        {
+                            (newMinY, newMaxY) = mmolNormalizeChart(newMinY, newMaxY);
+                        }
 
                         glucoseChart.ChartAreas[0].AxisY.Maximum = newMaxY;
                         glucoseChart.ChartAreas[0].AxisY.Minimum = newMinY;
 
                         double avg = glucodata / index;
-                        double TIR = 100 - ((offRange*100) / index);
+                        double TIR = 100 - ((offRange * 100) / index);
 
                         glucoseChart.ChartAreas["ChartArea1"].AxisX.IsMarginVisible = true;
 
@@ -414,7 +425,7 @@ namespace LibreLinkUp_Windows
 
                         glucoseChart.Series["Glucose"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
 
-                        glucoseChart.ChartAreas[0].AxisX.LabelStyle.Format = "HH:mm"; 
+                        glucoseChart.ChartAreas[0].AxisX.LabelStyle.Format = "HH:mm";
                         glucoseChart.ChartAreas[0].AxisX.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Hours;
                         glucoseChart.ChartAreas[0].AxisX.Interval = 1;
 
@@ -431,6 +442,20 @@ namespace LibreLinkUp_Windows
                 {
                     glucoseLabel.Text = $"Failed to fetch glucose: {ex.Message}";
                 }
+            }
+
+            private (double _min, double _max) mmolNormalizeChart(double _min, double _max)
+            {
+                double chartRange = _max - _min;
+
+                double targetRange = Math.Ceiling(chartRange / 5.0) * 5;
+
+                double step = targetRange / 5;
+
+                double chartMinY = Math.Floor(_min / step) * step;
+                double chartMaxY = chartMinY + targetRange;
+
+                return (chartMinY, chartMaxY);
             }
         }
     }
