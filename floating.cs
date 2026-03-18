@@ -266,8 +266,11 @@ namespace LibreLinkUp_Windows
                        
                         var connection = JsonGraph.data.connection;
 
-                        double max_alarm = connection.targetHigh;
-                        double min_alarm = connection.targetLow;
+                        int glucoseUnits = connection.glucoseMeasurement.GlucoseUnits;
+
+                        double max_alarm = connection.targetHigh / 18;
+                        double min_alarm = connection.targetLow / 18;
+
 
                         glucoseChart.Series["Glucose"].Points.Clear();
 
@@ -278,8 +281,8 @@ namespace LibreLinkUp_Windows
                         int index = 0;
                         double glucodata = 0;
                         int offRange = 0;
-                        double maxMin = connection.targetHigh;
-                        double minMax = connection.targetLow;
+                        double maxMin = (connection.targetHigh / 18);
+                        double minMax = (connection.targetLow / 18);
 
                         double baseMaxY = max_alarm;
                         double newMaxY = Math.Max(baseMaxY, max);
@@ -345,7 +348,7 @@ namespace LibreLinkUp_Windows
                         {
                             case 1:
                                 trendArrow = "⬇️";
-                                if (Convert.ToInt32(lastValue) <= minMax + 50)
+                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 50)/18)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -353,7 +356,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 2:
                                 trendArrow = "↘️";
-                                if (Convert.ToInt32(lastValue) <= minMax + 25)
+                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 25)/18)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -364,7 +367,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 4:
                                 trendArrow = "↗️";
-                                if (Convert.ToInt32(lastValue) >= maxMin - 25)
+                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 25)/18)
                                 {
                                     glucoseLabel.ForeColor = Color.Yellow;
                                     lastValue.Insert(0, "⚠️");
@@ -372,7 +375,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 5:
                                 trendArrow = "⬆️";
-                                if (Convert.ToInt32(lastValue) >= maxMin - 50)
+                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 50)/18)
                                 {
                                     glucoseLabel.ForeColor = Color.Yellow;
                                     lastValue.Insert(0, "⚠️");
