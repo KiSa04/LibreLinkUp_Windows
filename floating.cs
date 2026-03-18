@@ -417,7 +417,7 @@ namespace LibreLinkUp_Windows
 
                         stripLine.Interval = 0;
                         stripLine.IntervalOffset = avg;
-                        stripLine.StripWidth = 2;
+                        stripLine.StripWidth = unitType == "mg/dl" ? 2 : 0.18f;
                         stripLine.BackColor = Color.Blue;
                         stripLine.TextAlignment = StringAlignment.Far;
                         stripLine.TextLineAlignment = StringAlignment.Center;
