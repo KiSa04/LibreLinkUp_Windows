@@ -362,7 +362,7 @@ namespace LibreLinkUp_Windows
                         {
                             case 1:
                                 trendArrow = "⬇️";
-                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 50) * localGlucoseConversion)
+                                if (Convert.ToInt32(lastValue) <= (connection.targetLow + 50) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -370,7 +370,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 2:
                                 trendArrow = "↘️";
-                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 25) * localGlucoseConversion)
+                                if (Convert.ToInt32(lastValue) <= (connection.targetLow + 25) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -381,7 +381,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 4:
                                 trendArrow = "↗️";
-                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 25) * localGlucoseConversion)
+                                if (Convert.ToInt32(lastValue) >= (connection.targetHigh - 25) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Yellow;
                                     lastValue.Insert(0, "⚠️");
@@ -389,7 +389,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 5:
                                 trendArrow = "⬆️";
-                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 50) * localGlucoseConversion)
+                                if (Convert.ToInt32(lastValue) >= (connection.targetHigh - 50) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Yellow;
                                     lastValue.Insert(0, "⚠️");
