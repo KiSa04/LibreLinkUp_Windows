@@ -128,6 +128,8 @@ namespace LibreLinkUp_Windows
                 glucoseTimer.Interval = 60000;
                 glucoseTimer.Elapsed += GlucoseTimer_Elapsed;
                 glucoseTimer.Start();
+
+                this.Deactivate += (s, e) => HandleMouseExit();
             }
             private void TrayIcon_DoubleClick(object sender, EventArgs e)
             {
@@ -176,11 +178,19 @@ namespace LibreLinkUp_Windows
             }
             private void GlucoseForm_MouseLeave(object sender, EventArgs e)
             {
+                HandleMouseExit();
+            }
+
+            private bool isHovering = false;
+            private void HandleMouseExit()
+            {
+                if (!isHovering) return;
+
                 if (!glucoseLabel.ClientRectangle.Contains(glucoseLabel.PointToClient(System.Windows.Forms.Cursor.Position)) &&
-                    !avgLabel.ClientRectangle.Contains(avgLabel.PointToClient(System.Windows.Forms.Cursor.Position)) &&
                     !glucoseChart.ClientRectangle.Contains(glucoseChart.PointToClient(System.Windows.Forms.Cursor.Position)) &&
                     !this.ClientRectangle.Contains(this.PointToClient(System.Windows.Forms.Cursor.Position)))
                 {
+                    isHovering = false;
                     glucoseChart.Visible = false;
                     avgLabel.Visible = false;
                     glucoseLabel.Text = nVal;
@@ -191,9 +201,9 @@ namespace LibreLinkUp_Windows
 
             private void GlucoseForm_MouseHover(object sender, EventArgs e)
             {
+                isHovering = true;
                 glucoseChart.Visible = true;
                 avgLabel.Visible = true;
-                nVal = glucoseLabel.Text;
                 glucoseLabel.Text = exVal;
                 this.Width = 350;
                 this.Height = 250;
@@ -221,7 +231,6 @@ namespace LibreLinkUp_Windows
             }
             private void GlucoseForm_MouseMove(object sender, MouseEventArgs e)
             {
-
                 if (isDragging)
                 {
                     this.Left = e.X + this.Left - mouseOffset.X;
@@ -353,7 +362,7 @@ namespace LibreLinkUp_Windows
                         {
                             case 1:
                                 trendArrow = "⬇️";
-                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 50) * localGlucoseConversion)
+                                if (Convert.ToInt32(lastValue) <= (connection.targetLow + 50) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -361,7 +370,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 2:
                                 trendArrow = "↘️";
-                                if (Convert.ToInt32(lastValue) <= (connection.targetHigh + 25) * localGlucoseConversion)
+                                if (Convert.ToInt32(lastValue) <= (connection.targetLow + 25) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -372,7 +381,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 4:
                                 trendArrow = "↗️";
-                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 25) * localGlucoseConversion)
+                                if (Convert.ToInt32(lastValue) >= (connection.targetHigh - 25) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Yellow;
                                     lastValue.Insert(0, "⚠️");
@@ -380,7 +389,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 5:
                                 trendArrow = "⬆️";
-                                if (Convert.ToInt32(lastValue) >= (connection.targetLow - 50) * localGlucoseConversion)
+                                if (Convert.ToInt32(lastValue) >= (connection.targetHigh - 50) * localGlucoseConversion)
                                 {
                                     glucoseLabel.ForeColor = Color.Yellow;
                                     lastValue.Insert(0, "⚠️");
@@ -408,7 +417,7 @@ namespace LibreLinkUp_Windows
 
                         stripLine.Interval = 0;
                         stripLine.IntervalOffset = avg;
-                        stripLine.StripWidth = 2;
+                        stripLine.StripWidth = unitType == "mg/dl" ? 2 : 0.18f;
                         stripLine.BackColor = Color.Blue;
                         stripLine.TextAlignment = StringAlignment.Far;
                         stripLine.TextLineAlignment = StringAlignment.Center;
@@ -418,6 +427,7 @@ namespace LibreLinkUp_Windows
                         glucoseLabel.Text = $"{lastValue} {unitType} {trendArrow}";
                         avgLabel.Text = $"Average: {avg.ToString("0.")} {unitType}";
                         exVal = $"TIR: {TIR.ToString("0.")}%";
+                        nVal = glucoseLabel.Text;
 
                         if (avgLabel.Visible == false)
                             glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
