@@ -470,7 +470,7 @@ namespace LibreLinkUp_Windows
                         glucoseChart.ChartAreas[0].AxisY.Minimum = normalizedMinY;
 
                         double axisRange = normalizedMaxY - normalizedMinY;
-                        double stripWidth = (axisRange / glucoseChart.Size.Height) * 3;
+                        double stripWidth = Math.Round((axisRange / glucoseChart.Size.Height) * 3,1);
 
 
                         glucoseChart.ChartAreas["ChartArea1"].AxisX.IsMarginVisible = true;
@@ -513,7 +513,10 @@ namespace LibreLinkUp_Windows
                         if (max_alarm >= newMaxY)
                         {
                             stripRange = Math.Abs(max_alarm - newMaxY);
-                            if (stripRange >= 1) stripRange = 0;
+                            if (stripRange >= 1)
+                                stripRange = 0;
+                            else
+                                stripRange += (2.7 * localGlucoseConversion);
                         }
                         else
                         {
@@ -522,7 +525,7 @@ namespace LibreLinkUp_Windows
                         stripLine = new StripLine();
 
                         stripLine.Interval = 0;
-                        stripLine.IntervalOffset = max_alarm - stripRange - (3.6 * localGlucoseConversion);
+                        stripLine.IntervalOffset = max_alarm - stripRange;
                         stripLine.StripWidth = stripWidth;
                         stripLine.BackColor = Color.Orange;
                         stripLine.TextAlignment = StringAlignment.Far;
