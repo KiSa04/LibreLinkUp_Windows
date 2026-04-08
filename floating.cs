@@ -560,6 +560,12 @@ namespace LibreLinkUp_Windows
                         }
                         exVal = $"TIR: {TIR.ToString("0.")}%";
 
+                        if (isHovering) // Stops api replacing label when hovering
+                        {
+                            glucoseLabel.Text = exVal;
+                            glucoseLabel.ForeColor = Color.White;
+                        }
+
                         if (avgLabel.Visible == false)
                             glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
                         //tirLabel.Left = (this.ClientSize.Width - tirLabel.Width) / 2;
