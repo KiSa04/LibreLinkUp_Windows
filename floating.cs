@@ -283,8 +283,7 @@ namespace LibreLinkUp_Windows
                         double targetHigh = connection.targetHigh;
                         double targetLow = connection.targetLow;
 
-                        //double TESTMGDL = Math.Round(Convert.ToDouble(connection.glucoseMeasurement.Value) * 18, 0);
-                        string lastValue = connection.glucoseMeasurement.Value; //Convert.ToString(TESTMGDL); //
+                        string lastValue = connection.glucoseMeasurement.Value; 
 
                         string unitType = connection.glucoseMeasurement.GlucoseUnits;
 
