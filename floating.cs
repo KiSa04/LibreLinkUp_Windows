@@ -248,8 +248,6 @@ namespace LibreLinkUp_Windows
             private string exVal, nVal;
             private Color nValColor = Color.White;
 
-            double max = 0;
-            double min = 999;
             string con_url = "https://api.libreview.io/llu/connections";
             private async Task GetLatestGlucoseValue()
             {
@@ -278,13 +276,15 @@ namespace LibreLinkUp_Windows
 
                         var connection = JsonGraph.data.connection;
 
+                        double max = 0;
+                        double min = 999;
                         double max_alarm = connection.patientDevice.hl;
                         double min_alarm = connection.patientDevice.ll;
                         double targetHigh = connection.targetHigh;
                         double targetLow = connection.targetLow;
 
                         //double TESTMGDL = Math.Round(Convert.ToDouble(connection.glucoseMeasurement.Value) * 18, 0);
-                        string lastValue = connection.glucoseMeasurement.Value; // Convert.ToString(TESTMGDL); //
+                        string lastValue = connection.glucoseMeasurement.Value; //Convert.ToString(TESTMGDL); //
 
                         string unitType = connection.glucoseMeasurement.GlucoseUnits;
 
@@ -313,13 +313,9 @@ namespace LibreLinkUp_Windows
 
                         double newMaxY = Math.Max(targetHigh, Math.Round(max_alarm));
                         double newMinY = Math.Min(targetLow, Math.Round(min_alarm));
-                        int trendArrowValue = connection.glucoseMeasurement.TrendArrow;
                         bool high = connection.glucoseMeasurement.isHigh;
                         bool low = connection.glucoseMeasurement.isLow;
                         int MeasurementColor = connection.glucoseMeasurement.MeasurementColor;
-
-
-                        string trendArrow = null;
 
                         foreach (var dataPoint in graphData)
                         {
@@ -388,18 +384,18 @@ namespace LibreLinkUp_Windows
                             }
                             else if (glucoseValue < targetLow)
                             {
-                                glucoseChart.Series["Glucose"].Points[index].Color = Color.FromArgb(255, 200, 0);
-                                glucoseLabel.ForeColor = Color.FromArgb(255, 200, 0);
-                            }
-                            else if (glucoseValue > URGENT_HIGH * localGlucoseConversion)
-                            {
                                 glucoseChart.Series["Glucose"].Points[index].Color = Color.Red;
                                 glucoseLabel.ForeColor = Color.Red;
                             }
-                            else if (glucoseValue > targetHigh)
+                            else if (glucoseValue > URGENT_HIGH * localGlucoseConversion)
                             {
                                 glucoseChart.Series["Glucose"].Points[index].Color = Color.Orange;
                                 glucoseLabel.ForeColor = Color.Orange;
+                            }
+                            else if (glucoseValue > targetHigh)
+                            {
+                                glucoseChart.Series["Glucose"].Points[index].Color = Color.FromArgb(255, 200, 0);
+                                glucoseLabel.ForeColor = Color.FromArgb(255, 200, 0);
                             }
                             else
                             {
@@ -410,6 +406,8 @@ namespace LibreLinkUp_Windows
                             index++;
                         }
 
+                        string trendArrow = null;
+                        int trendArrowValue = connection.glucoseMeasurement.TrendArrow;
                         double gentleBuffer = 25 * localGlucoseConversion;
                         double sharpDropBuffer = 35 * localGlucoseConversion;
                         double sharpRiseBuffer = 50 * localGlucoseConversion;
@@ -451,12 +449,22 @@ namespace LibreLinkUp_Windows
                                     lastValue.Insert(0, "⚠️");
                                 }
                                 break;
-                            default:
+                            case 0:
+                                if (high) 
+                                { 
+                                    lastValue = "⚠️HI"; 
+                                    glucoseLabel.ForeColor = Color.Orange; 
+                                }
+                                if (low) 
+                                { 
+                                    lastValue = "⚠️LO"; 
+                                    glucoseLabel.ForeColor = Color.Red; 
+                                }
                                 break;
                         }
                         ;
 
-                        newMaxY = Math.Max(newMaxY, Math.Ceiling(max));
+                        newMaxY = Math.Max(newMaxY, RoundHalfCeiling(max));
                         newMinY = Math.Min(newMinY, Math.Floor(min));
                         double avg = glucodata / index;
                         double TIR = 100 - ((offRange * 100) / index);
@@ -492,14 +500,11 @@ namespace LibreLinkUp_Windows
                         { // Low Stripline
                             StripLine stripLine = new StripLine();
 
+                            stripRange = 0;
                             if (min_alarm <= Math.Round(newMinY, 0))
                             {
                                 stripRange = Math.Abs(min_alarm - normalizedMinY);
                                 if (stripRange >= 1) stripRange = 0;
-                            }
-                            else
-                            {
-                                stripRange = 0;
                             }
 
                             stripLine.Interval = 0;
@@ -515,17 +520,13 @@ namespace LibreLinkUp_Windows
                         { // High Stripline
                             StripLine stripLine = new StripLine();
 
+                            stripRange = (2 * localGlucoseConversion); //Move the line just under the set alarm line
+
                             if (max_alarm >= newMaxY)
                             {
-                                stripRange = Math.Abs(max_alarm - newMaxY);
-                                if (stripRange >= 1)
-                                    stripRange = 0;
-                                else
-                                    stripRange += (2.7 * localGlucoseConversion);
-                            }
-                            else
-                            {
-                                stripRange = 0;
+                                double stripRangeOffset = Math.Abs(max_alarm - newMaxY);
+                                if (stripRangeOffset < 1) // Tries to round down to adjust for graph offset, only really applies to mmol/l
+                                    stripRange += stripRangeOffset;
                             }
                             
                             stripLine.Interval = 0;
@@ -537,8 +538,16 @@ namespace LibreLinkUp_Windows
 
                             glucoseChart.ChartAreas["ChartArea1"].AxisY.StripLines.Add(stripLine);
                         }
-                        
-                        glucoseLabel.Text = $"{lastValue} {unitType} {trendArrow}";
+
+                        if (high || low)
+                        {
+                            glucoseLabel.Text = $"{lastValue}";
+                        }
+                        else
+                        {
+                            glucoseLabel.Text = $"{lastValue} {unitType} {trendArrow}";
+                        }
+
                         nVal = glucoseLabel.Text;
                         nValColor = glucoseLabel.ForeColor;
 
@@ -585,23 +594,41 @@ namespace LibreLinkUp_Windows
                 if (_unitType == "mg/dl")
                 {
                     range = (Math.Ceiling(max / 5) * 5) - (Math.Floor(min / 5) * 5);
-                    for (int i = 5; i < range; i++) // Find a good divisible candidate
+
+                    for (int i = Convert.ToInt32(range); i > 0; i -= 5) // Find a good divisible candidate in 5 increments
                     {
-                        if (range % i == 0 && (range / i) <= 7)
+                        if ((range / i) % 1 == 0 && (range / i) > 4 && (range / i) <= 7)
                         {
                             return i;
                         }
                     }
+
+                    for (int i = Convert.ToInt32(range); i > 0; i -= 5) // Find a good divisible candidate in 5 increments, includes .5 intervals that adjust the YMax later
+                    {
+                        if (((range / i) % 0.5 == 0 || (range / i) % 1 == 0) && (range / i) > 4 && (range / i) <= 7)
+                        {
+                            return i;
+                        }
+                    }
+
+                    for (int i = Convert.ToInt32(range); i > 0; i -= 2) // Find a good divisible candidate in 2 increments worst case
+                    {
+                        if ((range / i) % 1 == 0 && (range / i) > 4 && (range / i) <= 7)
+                        {
+                            return i;
+                        }
+                    }
+
                     return 10;
                 }
                 else
                 {
-                    range = Math.Round(max, 0) - Math.Round(min, 0);
+                    range = RoundHalfCeiling(max) - Math.Round(min, 0);
                     int rangeInt = (int)Math.Round(range * 10);
-                    for (int i = 1; i < rangeInt; i++) // Find a good divisible candidate
+                    for (int i = rangeInt; i != 0; i-=5) // Find a good divisible candidate
                     {
                         double interval = i / 10.0;
-                        if (rangeInt % i == 0 && (rangeInt / i) <= 7)
+                        if ( (rangeInt / i) > 4 && (rangeInt / i) <= 7)
                         {
                             return interval;
                         }
@@ -623,10 +650,20 @@ namespace LibreLinkUp_Windows
                 else
                 {
                     newMin = Math.Round(_min, 0);
-                    newMax = Math.Round(_max, 0);
+                    newMax = RoundHalfCeiling(_max);
                 }
 
+                double epsilon = 1e-9;
+                double adjustedMax = newMin + Math.Ceiling(((newMax - newMin) / _interval) - epsilon) * _interval;
+
+                newMax = adjustedMax;
+
                 return (newMin, newMax);
+            }
+
+            private double RoundHalfCeiling(double value)
+            {
+                return Math.Ceiling(value * 2) / 2.0;
             }
         }
     }
