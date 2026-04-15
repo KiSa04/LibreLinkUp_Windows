@@ -19,11 +19,13 @@ namespace LibreLinkUp_Windows
             private string patientId;
             private System.Timers.Timer glucoseTimer;
             private Label glucoseLabel, avgLabel;
-            private bool isDragging, isHover = false;
+            private bool isDragging, isHovering = false;
             private Point mouseOffset;
             private Chart glucoseChart;
             private NotifyIcon trayIcon;
             private ContextMenuStrip trayMenu;
+            private static int URGENT_HIGH = 250;
+            private static int URGENT_LOW = 55;
 
             public GlucoseForm(string authToken, string sha256Hash, string patientId)
             {
@@ -181,7 +183,6 @@ namespace LibreLinkUp_Windows
                 HandleMouseExit();
             }
 
-            private bool isHovering = false;
             private void HandleMouseExit()
             {
                 if (!isHovering) return;
@@ -194,6 +195,7 @@ namespace LibreLinkUp_Windows
                     glucoseChart.Visible = false;
                     avgLabel.Visible = false;
                     glucoseLabel.Text = nVal;
+                    glucoseLabel.ForeColor = nValColor;
                     this.Width = 150;
                     this.Height = 50;
                 }
@@ -205,6 +207,7 @@ namespace LibreLinkUp_Windows
                 glucoseChart.Visible = true;
                 avgLabel.Visible = true;
                 glucoseLabel.Text = exVal;
+                glucoseLabel.ForeColor = Color.White;
                 this.Width = 350;
                 this.Height = 250;
             }
@@ -243,9 +246,8 @@ namespace LibreLinkUp_Windows
             }
 
             private string exVal, nVal;
+            private Color nValColor = Color.White;
 
-            double max = 0;
-            double min = 999;
             string con_url = "https://api.libreview.io/llu/connections";
             private async Task GetLatestGlucoseValue()
             {
@@ -272,19 +274,31 @@ namespace LibreLinkUp_Windows
 
                         var graphData = JsonGraph.data.graphData;
 
-
                         var connection = JsonGraph.data.connection;
 
-                        int glucoseUnits = connection.glucoseMeasurement.GlucoseUnits;
+                        double max = 0;
+                        double min = 999;
+                        double max_alarm = connection.patientDevice.hl;
+                        double min_alarm = connection.patientDevice.ll;
+                        double targetHigh = connection.targetHigh;
+                        double targetLow = connection.targetLow;
+
+                        string lastValue = connection.glucoseMeasurement.Value; 
+
+                        string unitType = connection.glucoseMeasurement.GlucoseUnits;
+
+                        unitType = unitType == "1" ? "mg/dl" : "mmol/l";
 
                         double localGlucoseConversion = 1;
-                        if (glucoseUnits == 0) // 0 == mmol/l, 1 == mg/dl
+                        if (unitType == "mmol/l")
                         {
-                            localGlucoseConversion = 1f / 18f;
+                            localGlucoseConversion = 1.0 / 18.0;
+                            max_alarm = Math.Round(max_alarm * localGlucoseConversion, 1);
+                            min_alarm = Math.Round(min_alarm * localGlucoseConversion, 1);
+                            targetHigh = Math.Round(targetHigh * localGlucoseConversion, 1);
+                            targetLow = Math.Round(targetLow * localGlucoseConversion, 1);
+                            lastValue = double.Parse(lastValue).ToString("0.0");
                         }
-
-                        double max_alarm = connection.targetHigh * localGlucoseConversion;
-                        double min_alarm = connection.targetLow * localGlucoseConversion;
 
                         glucoseChart.Series["Glucose"].Points.Clear();
 
@@ -295,24 +309,12 @@ namespace LibreLinkUp_Windows
                         int index = 0;
                         double glucodata = 0;
                         int offRange = 0;
-                        double maxMin = connection.targetHigh * localGlucoseConversion;
-                        double minMax = connection.targetLow * localGlucoseConversion;
 
-                        double baseMaxY = max_alarm;
-                        double newMaxY = Math.Max(baseMaxY, max);
-                        double baseMinY = min_alarm;
-                        double newMinY = Math.Min(baseMinY, min);
-
-                        string lastValue = JsonGraph.data.connection.glucoseMeasurement.Value;
-                        int trendArrowValue = JsonGraph.data.connection.glucoseMeasurement.TrendArrow;
-                        bool high = JsonGraph.data.connection.glucoseMeasurement.isHigh;
-                        bool low = JsonGraph.data.connection.glucoseMeasurement.isLow;
-                        int MeasurementColor = JsonGraph.data.connection.glucoseMeasurement.MeasurementColor;
-                        string unitType = JsonGraph.data.connection.glucoseMeasurement.GlucoseUnits;
-
-                        unitType = unitType == "1" ? "mg/dl" : "mmol/l";
-
-                        string trendArrow = null;
+                        double newMaxY = Math.Max(targetHigh, Math.Round(max_alarm));
+                        double newMinY = Math.Min(targetLow, Math.Round(min_alarm));
+                        bool high = connection.glucoseMeasurement.isHigh;
+                        bool low = connection.glucoseMeasurement.isLow;
+                        int MeasurementColor = connection.glucoseMeasurement.MeasurementColor;
 
                         foreach (var dataPoint in graphData)
                         {
@@ -325,7 +327,7 @@ namespace LibreLinkUp_Windows
                                 if (glucoseValue > max) max = glucoseValue;
                                 if (glucoseValue < min) min = glucoseValue;
 
-                                if (glucoseValue > maxMin || glucoseValue < minMax) offRange++;
+                                if (glucoseValue > targetHigh || glucoseValue < targetLow) offRange++;
 
                                 string measurementColor = dataPoint.MeasurementColor.ToString();
                                 var chartPoint = glucoseChart.Series["Glucose"].Points.AddXY(timestamp, glucoseValue);
@@ -334,35 +336,101 @@ namespace LibreLinkUp_Windows
                                 {
                                     case "1":
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Green;
-                                        glucoseLabel.ForeColor = Color.White;
                                         break;
                                     case "2":
-                                        glucoseChart.Series["Glucose"].Points[index].Color = Color.Yellow;
-                                        glucoseLabel.ForeColor = Color.Yellow;
+                                        glucoseChart.Series["Glucose"].Points[index].Color = Color.FromArgb(255, 200, 0);
                                         break;
                                     case "3":
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Orange;
-                                        glucoseLabel.ForeColor = Color.Orange;
                                         break;
                                     case "4":
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Red;
-                                        glucoseLabel.ForeColor = Color.Red;
                                         break;
                                     default:
                                         glucoseChart.Series["Glucose"].Points[index].Color = Color.Gray;
-                                        glucoseLabel.ForeColor = Color.White;
                                         break;
-                                }
+                                } // 2:10:43 Last graphed data -> At 2:44:00RT | 2:25:43 data posted
+                                  // ~18 min API delivery delay + ~5-10 min sensor lag = ~23-28 min total delay
+                                  // between actual glucose and what appears on the API response.
+                                  // Color of label must be moved.
                                 glucodata += glucoseValue;
                                 index++;
                             }
                         }
 
+                        bool noData = false;
+
+                        // Add current value to chart
+                        if (DateTime.TryParseExact(connection.glucoseMeasurement.Timestamp.ToString(), timestampFormat,
+                                                        System.Globalization.CultureInfo.InvariantCulture,
+                                                        System.Globalization.DateTimeStyles.None,
+                                                        out DateTime lastTimestamp))
+                        {
+                            if((DateTime.Now - lastTimestamp).TotalMinutes > 30 ) // Checks if a reading has been taken in the past 30 minutes, reports no data if not
+                            {
+                                noData = true;
+                                lastTimestamp = DateTime.Now;
+                            }
+
+                            double glucoseValue = Convert.ToDouble(lastValue);
+
+                            if (glucoseValue > max) max = glucoseValue;
+                            if (glucoseValue < min) min = glucoseValue;
+
+                            var chartPointCurrent = glucoseChart.Series["Glucose"].Points.AddXY(lastTimestamp, lastValue);
+                            glucoseChart.Series["Glucose"].Points[index].MarkerStyle = MarkerStyle.Star5;
+                            glucoseChart.Series["Glucose"].Points[index].MarkerBorderColor = Color.Black;
+                            glucoseChart.Series["Glucose"].Points[index].MarkerSize = 12;
+
+                            if (glucoseValue > targetHigh || glucoseValue < targetLow) offRange++;
+
+                            if(noData)
+                            {
+                                glucoseChart.Series["Glucose"].Points[index].Color = Color.RoyalBlue;
+                                glucoseLabel.ForeColor = Color.RoyalBlue;
+                            }
+                            else if (glucoseValue < URGENT_LOW * localGlucoseConversion)
+                            {
+                                glucoseChart.Series["Glucose"].Points[index].Color = Color.Red;
+                                glucoseLabel.ForeColor = Color.Red;
+                            }
+                            else if (glucoseValue < targetLow)
+                            {
+                                glucoseChart.Series["Glucose"].Points[index].Color = Color.Red;
+                                glucoseLabel.ForeColor = Color.Red;
+                            }
+                            else if (glucoseValue > URGENT_HIGH * localGlucoseConversion)
+                            {
+                                glucoseChart.Series["Glucose"].Points[index].Color = Color.Orange;
+                                glucoseLabel.ForeColor = Color.Orange;
+                            }
+                            else if (glucoseValue > targetHigh)
+                            {
+                                glucoseChart.Series["Glucose"].Points[index].Color = Color.FromArgb(255, 200, 0);
+                                glucoseLabel.ForeColor = Color.FromArgb(255, 200, 0);
+                            }
+                            else
+                            {
+                                glucoseChart.Series["Glucose"].Points[index].Color = Color.Green;
+                                glucoseLabel.ForeColor = Color.White;
+                            }
+                            glucodata += glucoseValue;
+                            index++;
+                        }
+
+                        string trendArrow = null;
+                        int trendArrowValue = connection.glucoseMeasurement.TrendArrow;
+                        double gentleBuffer = 25 * localGlucoseConversion;
+                        double sharpDropBuffer = 35 * localGlucoseConversion;
+                        double sharpRiseBuffer = 50 * localGlucoseConversion;
+
+                        if (noData) trendArrowValue = 6;
+
                         switch (trendArrowValue)
                         {
                             case 1:
                                 trendArrow = "⬇️";
-                                if (Convert.ToInt32(lastValue) <= (connection.targetLow + 50) * localGlucoseConversion)
+                                if (Convert.ToDouble(lastValue) <= (Convert.ToDouble(connection.targetLow) * localGlucoseConversion) + sharpDropBuffer)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -370,7 +438,7 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 2:
                                 trendArrow = "↘️";
-                                if (Convert.ToInt32(lastValue) <= (connection.targetLow + 25) * localGlucoseConversion)
+                                if (Convert.ToDouble(lastValue) <= (Convert.ToDouble(connection.targetLow) * localGlucoseConversion) + gentleBuffer)
                                 {
                                     glucoseLabel.ForeColor = Color.Red;
                                     lastValue.Insert(0, "⚠️");
@@ -381,53 +449,140 @@ namespace LibreLinkUp_Windows
                                 break;
                             case 4:
                                 trendArrow = "↗️";
-                                if (Convert.ToInt32(lastValue) >= (connection.targetHigh - 25) * localGlucoseConversion)
+                                if (Convert.ToDouble(lastValue) >= (Convert.ToDouble(connection.targetHigh) * localGlucoseConversion) + gentleBuffer)
                                 {
-                                    glucoseLabel.ForeColor = Color.Yellow;
+                                    glucoseLabel.ForeColor = Color.FromArgb(255, 200, 0);
                                     lastValue.Insert(0, "⚠️");
                                 }
                                 break;
                             case 5:
                                 trendArrow = "⬆️";
-                                if (Convert.ToInt32(lastValue) >= (connection.targetHigh - 50) * localGlucoseConversion)
+                                if (Convert.ToDouble(lastValue) >= (Convert.ToDouble(connection.targetHigh) * localGlucoseConversion) + sharpRiseBuffer)
                                 {
-                                    glucoseLabel.ForeColor = Color.Yellow;
+                                    glucoseLabel.ForeColor = Color.Orange;
                                     lastValue.Insert(0, "⚠️");
                                 }
                                 break;
-                            default:
+                            case 6:
+                                lastValue = "⏳NO DATA";
+                                break;
+                            case 0:
+                                if (high) 
+                                { 
+                                    lastValue = "⚠️HI"; 
+                                    glucoseLabel.ForeColor = Color.Orange; 
+                                }
+                                if (low) 
+                                { 
+                                    lastValue = "⚠️LO"; 
+                                    glucoseLabel.ForeColor = Color.Red; 
+                                }
                                 break;
                         }
                         ;
 
-                        if (unitType == "mmol/l")
-                        {
-                            (newMinY, newMaxY) = mmolNormalizeChart(newMinY, newMaxY);
-                        }
-
-                        glucoseChart.ChartAreas[0].AxisY.Maximum = newMaxY;
-                        glucoseChart.ChartAreas[0].AxisY.Minimum = newMinY;
-
+                        newMaxY = Math.Max(newMaxY, RoundHalfCeiling(max));
+                        newMinY = Math.Min(newMinY, Math.Floor(min));
                         double avg = glucodata / index;
                         double TIR = 100 - ((offRange * 100) / index);
 
+                        double interval = GetInterval(newMinY, newMaxY, unitType);
+                        (double normalizedMinY, double normalizedMaxY) = NormalizeChart(newMinY, newMaxY, interval, unitType);
+
+                        glucoseChart.ChartAreas[0].AxisY.LabelStyle.Format = "";
+                        glucoseChart.ChartAreas[0].AxisY.Interval = interval;
+                        glucoseChart.ChartAreas[0].AxisY.Maximum = normalizedMaxY;
+                        glucoseChart.ChartAreas[0].AxisY.Minimum = normalizedMinY;
+
+                        double axisRange = normalizedMaxY - normalizedMinY;
+                        double stripWidth = Math.Round((axisRange / glucoseChart.Size.Height) * 3, 1);
+
                         glucoseChart.ChartAreas["ChartArea1"].AxisX.IsMarginVisible = true;
 
-                        StripLine stripLine = new StripLine();
+                        { // Average Glucose Stripline
+                            StripLine stripLine = new StripLine();
 
-                        stripLine.Interval = 0;
-                        stripLine.IntervalOffset = avg;
-                        stripLine.StripWidth = unitType == "mg/dl" ? 2 : 0.18f;
-                        stripLine.BackColor = Color.Blue;
-                        stripLine.TextAlignment = StringAlignment.Far;
-                        stripLine.TextLineAlignment = StringAlignment.Center;
+                            stripLine.Interval = 0;
+                            stripLine.IntervalOffset = avg;
+                            stripLine.StripWidth = stripWidth;
+                            stripLine.BackColor = Color.Blue;
+                            stripLine.TextAlignment = StringAlignment.Far;
+                            stripLine.TextLineAlignment = StringAlignment.Center;
 
-                        glucoseChart.ChartAreas["ChartArea1"].AxisY.StripLines.Add(stripLine);
+                            glucoseChart.ChartAreas["ChartArea1"].AxisY.StripLines.Add(stripLine);
+                        }
 
-                        glucoseLabel.Text = $"{lastValue} {unitType} {trendArrow}";
-                        avgLabel.Text = $"Average: {avg.ToString("0.")} {unitType}";
-                        exVal = $"TIR: {TIR.ToString("0.")}%";
+                        double stripRange;
+
+                        { // Low Stripline
+                            StripLine stripLine = new StripLine();
+
+                            stripRange = 0;
+                            if (min_alarm <= Math.Round(newMinY, 0))
+                            {
+                                stripRange = Math.Abs(min_alarm - normalizedMinY);
+                                if (stripRange >= 1) stripRange = 0;
+                            }
+
+                            stripLine.Interval = 0;
+                            stripLine.IntervalOffset = min_alarm + stripRange;
+                            stripLine.StripWidth = stripWidth;
+                            stripLine.BackColor = Color.Red;
+                            stripLine.TextAlignment = StringAlignment.Far;
+                            stripLine.TextLineAlignment = StringAlignment.Center;
+
+                            glucoseChart.ChartAreas["ChartArea1"].AxisY.StripLines.Add(stripLine);
+                        }
+
+                        { // High Stripline
+                            StripLine stripLine = new StripLine();
+
+                            stripRange = (2 * localGlucoseConversion); //Move the line just under the set alarm line
+
+                            if (max_alarm >= newMaxY)
+                            {
+                                double stripRangeOffset = Math.Abs(max_alarm - newMaxY);
+                                if (stripRangeOffset < 1) // Tries to round down to adjust for graph offset, only really applies to mmol/l
+                                    stripRange += stripRangeOffset;
+                            }
+                            
+                            stripLine.Interval = 0;
+                            stripLine.IntervalOffset = max_alarm - stripRange;
+                            stripLine.StripWidth = stripWidth;
+                            stripLine.BackColor = Color.Orange;
+                            stripLine.TextAlignment = StringAlignment.Far;
+                            stripLine.TextLineAlignment = StringAlignment.Center;
+
+                            glucoseChart.ChartAreas["ChartArea1"].AxisY.StripLines.Add(stripLine);
+                        }
+
+                        if (high || low || noData)
+                        {
+                            glucoseLabel.Text = $"{lastValue}";
+                        }
+                        else
+                        {
+                            glucoseLabel.Text = $"{lastValue} {unitType} {trendArrow}";
+                        }
+
                         nVal = glucoseLabel.Text;
+                        nValColor = glucoseLabel.ForeColor;
+
+                        if (unitType == "mg/dl")
+                        {
+                            avgLabel.Text = $"Average: {avg.ToString("0.")} {unitType}";
+                        }
+                        else
+                        {
+                            avgLabel.Text = $"Average: {avg.ToString("0.0")} {unitType}";
+                        }
+                        exVal = $"TIR: {TIR.ToString("0.")}%";
+
+                        if (isHovering) // Stops api replacing label when hovering
+                        {
+                            glucoseLabel.Text = exVal;
+                            glucoseLabel.ForeColor = Color.White;
+                        }
 
                         if (avgLabel.Visible == false)
                             glucoseLabel.Left = (this.ClientSize.Width - glucoseLabel.Width) / 2;
@@ -438,6 +593,7 @@ namespace LibreLinkUp_Windows
                         glucoseChart.ChartAreas[0].AxisX.LabelStyle.Format = "HH:mm";
                         glucoseChart.ChartAreas[0].AxisX.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Hours;
                         glucoseChart.ChartAreas[0].AxisX.Interval = 1;
+
 
                         /*if(high)
                             glucoseLabel.ForeColor = Color.Yellow;
@@ -454,18 +610,83 @@ namespace LibreLinkUp_Windows
                 }
             }
 
-            private (double _min, double _max) mmolNormalizeChart(double _min, double _max)
+            double GetInterval(double min, double max, string _unitType)
             {
-                double chartRange = _max - _min;
+                double range;
 
-                double targetRange = Math.Ceiling(chartRange / 5.0) * 5;
+                if (_unitType == "mg/dl")
+                {
+                    range = (Math.Ceiling(max / 5) * 5) - (Math.Floor(min / 5) * 5);
 
-                double step = targetRange / 5;
+                    for (int i = Convert.ToInt32(range); i > 0; i -= 5) // Find a good divisible candidate in 5 increments
+                    {
+                        if ((range / i) % 1 == 0 && (range / i) > 4 && (range / i) <= 7)
+                        {
+                            return i;
+                        }
+                    }
 
-                double chartMinY = Math.Floor(_min / step) * step;
-                double chartMaxY = chartMinY + targetRange;
+                    for (int i = Convert.ToInt32(range); i > 0; i -= 5) // Find a good divisible candidate in 5 increments, includes .5 intervals that adjust the YMax later
+                    {
+                        if (((range / i) % 0.5 == 0 || (range / i) % 1 == 0) && (range / i) > 4 && (range / i) <= 7)
+                        {
+                            return i;
+                        }
+                    }
 
-                return (chartMinY, chartMaxY);
+                    for (int i = Convert.ToInt32(range); i > 0; i -= 2) // Find a good divisible candidate in 2 increments worst case
+                    {
+                        if ((range / i) % 1 == 0 && (range / i) > 4 && (range / i) <= 7)
+                        {
+                            return i;
+                        }
+                    }
+
+                    return 10;
+                }
+                else
+                {
+                    range = RoundHalfCeiling(max) - Math.Round(min, 0);
+                    int rangeInt = (int)Math.Round(range * 10);
+                    for (int i = rangeInt; i != 0; i-=5) // Find a good divisible candidate
+                    {
+                        double interval = i / 10.0;
+                        if ( (rangeInt / i) > 4 && (rangeInt / i) <= 7)
+                        {
+                            return interval;
+                        }
+                    }
+                    return 1.0;
+                }
+            }
+
+            private (double _min, double _max) NormalizeChart(double _min, double _max, double _interval, string _units)
+            {
+                double newMin = _min;
+                double newMax = _max;
+
+                if (_units == "mg/dl")
+                {
+                    newMin = (Math.Floor(_min / 5) * 5);
+                    newMax = (Math.Ceiling(_max / 5) * 5);
+                }
+                else
+                {
+                    newMin = Math.Round(_min, 0);
+                    newMax = RoundHalfCeiling(_max);
+                }
+
+                double epsilon = 1e-9;
+                double adjustedMax = newMin + Math.Ceiling(((newMax - newMin) / _interval) - epsilon) * _interval;
+
+                newMax = adjustedMax;
+
+                return (newMin, newMax);
+            }
+
+            private double RoundHalfCeiling(double value)
+            {
+                return Math.Ceiling(value * 2) / 2.0;
             }
         }
     }
