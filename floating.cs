@@ -358,12 +358,20 @@ namespace LibreLinkUp_Windows
                             }
                         }
 
+                        bool noData = false;
+
                         // Add current value to chart
                         if (DateTime.TryParseExact(connection.glucoseMeasurement.Timestamp.ToString(), timestampFormat,
                                                         System.Globalization.CultureInfo.InvariantCulture,
                                                         System.Globalization.DateTimeStyles.None,
                                                         out DateTime lastTimestamp))
                         {
+                            if((DateTime.Now - lastTimestamp).TotalMinutes > 30 ) // Checks if a reading has been taken in the past 30 minutes, reports no data if not
+                            {
+                                noData = true;
+                                lastTimestamp = DateTime.Now;
+                            }
+
                             double glucoseValue = Convert.ToDouble(lastValue);
 
                             if (glucoseValue > max) max = glucoseValue;
@@ -376,7 +384,12 @@ namespace LibreLinkUp_Windows
 
                             if (glucoseValue > targetHigh || glucoseValue < targetLow) offRange++;
 
-                            if (glucoseValue < URGENT_LOW * localGlucoseConversion)
+                            if(noData)
+                            {
+                                glucoseChart.Series["Glucose"].Points[index].Color = Color.RoyalBlue;
+                                glucoseLabel.ForeColor = Color.RoyalBlue;
+                            }
+                            else if (glucoseValue < URGENT_LOW * localGlucoseConversion)
                             {
                                 glucoseChart.Series["Glucose"].Points[index].Color = Color.Red;
                                 glucoseLabel.ForeColor = Color.Red;
@@ -410,6 +423,8 @@ namespace LibreLinkUp_Windows
                         double gentleBuffer = 25 * localGlucoseConversion;
                         double sharpDropBuffer = 35 * localGlucoseConversion;
                         double sharpRiseBuffer = 50 * localGlucoseConversion;
+
+                        if (noData) trendArrowValue = 6;
 
                         switch (trendArrowValue)
                         {
@@ -447,6 +462,9 @@ namespace LibreLinkUp_Windows
                                     glucoseLabel.ForeColor = Color.Orange;
                                     lastValue.Insert(0, "⚠️");
                                 }
+                                break;
+                            case 6:
+                                lastValue = "⏳NO DATA";
                                 break;
                             case 0:
                                 if (high) 
@@ -538,7 +556,7 @@ namespace LibreLinkUp_Windows
                             glucoseChart.ChartAreas["ChartArea1"].AxisY.StripLines.Add(stripLine);
                         }
 
-                        if (high || low)
+                        if (high || low || noData)
                         {
                             glucoseLabel.Text = $"{lastValue}";
                         }
